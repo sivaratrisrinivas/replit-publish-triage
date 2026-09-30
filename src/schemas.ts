@@ -83,12 +83,3 @@ export const ActionSchema = z.object({
   payload: z.record(z.unknown()),
 });
 export type Action = z.infer<typeof ActionSchema>;
-
-export const CaseRecordSchema = z.object({
-  caseId: z.string().min(1),
-  ticket: TicketSchema,
-  previewConfig: ConfigSnapshotSchema,
-  publishedConfig: ConfigSnapshotSchema,
-  createdAt: IsoTimestamp,
-});
-export type CaseRecord = z.infer<typeof CaseRecordSchema>;

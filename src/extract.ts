@@ -40,7 +40,7 @@ type LlmFacts = z.infer<typeof LlmFactsSchema>;
 
 const EXTRACT_SYSTEM = `Extract structured facts from a synthetic support ticket about a published app failure. Reply with JSON only, no other text. Fields (string or null, null when absent, never infer production state from Preview state): symptom, expected, actual, environment, timestamp, deploymentType.`;
 
-export function resolveProvider(explicit?: "gemini" | "openrouter", explicitKey?: string): "gemini" | "openrouter" {
+function resolveProvider(explicit?: "gemini" | "openrouter", explicitKey?: string): "gemini" | "openrouter" {
   // Explicit provider always wins. An explicitly passed key keeps the legacy
   // OpenRouter contract. Otherwise the environment decides, preferring Gemini.
   if (explicit) return explicit;

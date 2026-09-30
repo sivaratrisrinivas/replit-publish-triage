@@ -20,14 +20,6 @@ export interface LlmOptions {
 
 let callCount = 0;
 
-export function llmCallCount(): number {
-  return callCount;
-}
-
-export function resetLlmCallCount(): void {
-  callCount = 0;
-}
-
 export function recordLlmCall(): void {
   callCount += 1;
 }

@@ -1,7 +1,7 @@
 import { readFile, readdir, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { runCase } from "./runCase.js";
-import { selectChecks, runChecks, DEFAULT_ALLOWLIST, type FetchImpl } from "./checks.js";
+import { runChecks, DEFAULT_ALLOWLIST, type FetchImpl } from "./checks.js";
 import { diagnose, type DiagnoseOutput } from "./diagnose.js";
 import { approveReview } from "./review.js";
 import type { ConfigSnapshot } from "./schemas.js";

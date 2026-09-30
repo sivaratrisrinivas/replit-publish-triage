@@ -81,7 +81,7 @@ export async function createMockAction(input: ActionInput, opts: ActionOptions =
     }
     const createdAt = now();
     const candidate = ActionSchema.parse({
-      actionId: `act-${input.idempotencyKey.slice(0, 8)}`,
+      actionId: `act-${input.idempotencyKey}`,
       caseId: input.caseId,
       target: input.target,
       idempotencyKey: input.idempotencyKey,

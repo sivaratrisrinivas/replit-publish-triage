@@ -28,7 +28,7 @@ export function normalizeTicket(ticketText: string): NormalizedFacts {
     actual: actualMatch ? actualMatch[0].trim().slice(0, 280) : null,
     environment: envMatch ? envMatch[0].toLowerCase() : null,
     timestamp: tsMatch ? tsMatch[0] : null,
-    deploymentType: deployMatch ? deployMatch[0].toLowerCase().replace("-", "-") : null,
+    deploymentType: deployMatch ? deployMatch[0].toLowerCase() : null,
   };
 }
 

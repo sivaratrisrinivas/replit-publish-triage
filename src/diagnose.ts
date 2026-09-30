@@ -219,8 +219,6 @@ export function diagnose(input: DiagnoseInput): DiagnoseOutput {
   } else if (!bar.passed) {
     abstention = `Insufficient customer-supplied support (${bar.reason}). Request evidence instead of guessing.`;
     hypotheses = [];
-  } else if (input.extraction.disposition === "needs-evidence" && survivors.length === 0) {
-    abstention = `Insufficient evidence: ${input.extraction.evidenceRequest.join(", ")}. Request evidence instead of guessing.`;
   }
 
   const definitive =

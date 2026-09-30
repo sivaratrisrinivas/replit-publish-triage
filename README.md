@@ -58,3 +58,13 @@ You need Node 24 and npm.
 ## What the numbers mean
 
 The eval cases, fixtures, logs, timings, and ROI inputs are all synthetic. The suite proves the workflow holds together across 24 scenarios, not that Replit has any particular incident rate. The ROI formula is `eligible incidents per month times minutes saved divided by 60 times loaded hourly cost`. That is capacity value, not cash saved. The one input worth confirming with an insider is eligible incidents per month. Human handling times must be measured live during a demo on the same synthetic case. The millisecond timings in the eval output measure code, not people.
+
+## Generated artifacts (not committed)
+
+`synth/traces/`, `community/traces/`, `eval/results.json`, and `.scratch/` are gitignored. Regenerate them locally when needed:
+
+- `npm run eval` writes `eval/results.json`.
+- `npx tsx synth/runBatch.ts synth/batch1.json synth/traces` rebuilds the 20 synthetic traces.
+- `npx tsx synth/runBatch.ts community/batch1.json community/traces` rebuilds the 8 community traces.
+
+Nothing user-facing changed in this cleanup: same 82 tests, same 24 eval cases, same review UI.

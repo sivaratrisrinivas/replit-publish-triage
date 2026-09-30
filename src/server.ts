@@ -322,7 +322,7 @@ function roiHtml(params: { eligible: number; minutes: number; cost: number; valu
   );
 }
 
-export function roiRoute(): (req: IncomingMessage, res: ServerResponse, url: URL) => Promise<void> {
+function roiRoute(): (req: IncomingMessage, res: ServerResponse, url: URL) => Promise<void> {
   return async (_req, res, url) => {
     const num = (v: string | null, fallback: number): number => {
       const n = Number(v);
