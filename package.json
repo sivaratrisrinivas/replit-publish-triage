@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "case:run": "tsx src/cli.ts",
     "check:run": "tsx src/checksCli.ts",
-    "serve": "tsx src/serve.ts"
+    "serve": "tsx src/serve.ts",
+    "eval": "tsx src/evalCli.ts"
   },
   "dependencies": {
     "tsx": "^4.23.15",

@@ -90,6 +90,10 @@ export interface RunChecksOptions {
 function urlFor(check: string, input: RunChecksInput): string | null {
   if (check === "preview-http-reachable") return input.previewUrl ?? null;
   if (check === "config-start-port-audit") return null;
+  if (check === "published-login-probe") {
+    if (!input.publishedUrl) return null;
+    return input.publishedUrl.replace(/\/$/, "") + "/login";
+  }
   return input.publishedUrl ?? null;
 }
 

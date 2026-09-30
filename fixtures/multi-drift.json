@@ -1,0 +1,31 @@
+{
+  "fixtureId": "multi-drift",
+  "label": "SYNTHETIC published with config gap plus startup drift",
+  "expectedBehavior": "Published differs in both production values and startup binding. Ranked hypotheses expected.",
+  "previewConfig": {
+    "fixtureId": "multi-drift",
+    "environment": "preview",
+    "deploymentType": "autoscale",
+    "startCommand": "npm start",
+    "buildCommand": "npm run build",
+    "host": "0.0.0.0",
+    "port": 3000,
+    "envVarNames": ["NODE_ENV", "DATABASE_URL", "PUBLIC_URL"],
+    "secretsPresentNames": ["SESSION_SECRET", "PROD_LOGIN_KEY"],
+    "publicUrl": "https://multi-preview.example.invalid"
+  },
+  "publishedConfig": {
+    "fixtureId": "multi-drift",
+    "environment": "published",
+    "deploymentType": "reserved-vm",
+    "startCommand": "node wrong-entry.js",
+    "buildCommand": "npm run build",
+    "host": "127.0.0.1",
+    "port": 5000,
+    "envVarNames": ["NODE_ENV", "PUBLIC_URL"],
+    "secretsPresentNames": ["SESSION_SECRET"],
+    "publicUrl": "https://multi-published.example.invalid"
+  },
+  "ticket": "SYNTHETIC: Preview works, published login fails.",
+  "synthetic": true
+}

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { approveReview, rejectReview, buildPacket, exportCaseMarkdown } from "./review.js";
+import { computeRoi, ROI_LOW, ROI_HIGH } from "./roi.js";
 import { redactText } from "./redact.js";
 import type { DiagnoseOutput } from "./diagnose.js";
 
@@ -147,6 +148,11 @@ export function createApp(opts: ServerOptions = {}): Server {
         return;
       }
 
+      if (req.method === "GET" && url.pathname === "/roi") {
+        await roiRoute()(req, res, url);
+        return;
+      }
+
       const caseMatch = url.pathname.match(/^\/case\/([^/]+)(\/.*)?$/);
       if (!caseMatch) {
         res.writeHead(404).end("not found");
@@ -240,4 +246,43 @@ export function createApp(opts: ServerOptions = {}): Server {
       res.writeHead(500).end(`error: ${(e as Error).message}`);
     }
   });
+}
+
+function roiHtml(params: { eligible: number; minutes: number; cost: number; value: number; formula: string; evalSummary: string }): string {
+  return `<!doctype html><html><head><meta charset="utf8"><title>ROI scenario (SYNTHETIC)</title></head><body>
+<h1>ROI scenario — capacity value, not cash saved (all inputs synthetic)</h1>
+<form method="get" action="/roi">
+<label>Eligible incidents/month <input name="eligible" value="${params.eligible}"></label><br>
+<label>Minutes saved/incident (assumption) <input name="minutes" value="${params.minutes}"></label><br>
+<label>Loaded $/hour (assumption) <input name="cost" value="${params.cost}"></label><br>
+<button type="submit">Recompute</button></form>
+<p>Formula: ${esc(params.formula)} = <strong>$${params.value.toLocaleString()}/month</strong></p>
+<p>Presets: <a href="/roi?eligible=${ROI_LOW.eligiblePerMonth}&minutes=${ROI_LOW.minutesSavedPerIncident}&cost=${ROI_LOW.loadedHourlyCost}">low</a> ·
+<a href="/roi?eligible=${ROI_HIGH.eligiblePerMonth}&minutes=${ROI_HIGH.minutesSavedPerIncident}&cost=${ROI_HIGH.loadedHourlyCost}">high</a></p>
+<p>The one input to confirm with an insider is eligible incidents/month. Handling-time reduction and hourly cost are also assumptions.</p>
+<h2>Eval summary (synthetic cases)</h2><pre>${esc(params.evalSummary)}</pre>
+<p>Paired human timings are recorded live during the demo on the same synthetic case; in-code pipeline milliseconds are not handling time.</p>
+<p><a href="/">queue</a></p></body></html>`;
+}
+
+export function roiRoute(): (req: IncomingMessage, res: ServerResponse, url: URL) => Promise<void> {
+  return async (_req, res, url) => {
+    const num = (v: string | null, fallback: number): number => {
+      const n = Number(v);
+      return Number.isFinite(n) && n >= 0 ? n : fallback;
+    };
+    const eligible = num(url.searchParams.get("eligible"), ROI_LOW.eligiblePerMonth);
+    const minutes = num(url.searchParams.get("minutes"), ROI_LOW.minutesSavedPerIncident);
+    const cost = num(url.searchParams.get("cost"), ROI_LOW.loadedHourlyCost);
+    const { monthlyValue, formula } = computeRoi({ eligiblePerMonth: eligible, minutesSavedPerIncident: minutes, loadedHourlyCost: cost });
+    let evalSummary = "eval/results.json not found — run npm run eval.";
+    try {
+      const raw = await readFile("eval/results.json", "utf8");
+      const r = JSON.parse(raw) as { passed: number; total: number; safety: { passed: number; total: number }; nonSafetyHeldout: { passed: number; total: number }; baseline: { passed: number; total: number }; totalMs: number };
+      evalSummary = `passed ${r.passed}/${r.total}; safety ${r.safety.passed}/${r.safety.total}; non-safety held-out ${r.nonSafetyHeldout.passed}/${r.nonSafetyHeldout.total}; baseline ${r.baseline.passed}/${r.baseline.total}; harness ${r.totalMs}ms (in-code, not handling time)`;
+    } catch {
+      /* leave default */
+    }
+    res.writeHead(200, { "content-type": "text/html; charset=utf8" }).end(roiHtml({ eligible, minutes, cost, value: monthlyValue, formula, evalSummary }));
+  };
 }

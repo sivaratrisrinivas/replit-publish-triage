@@ -4,9 +4,9 @@
 
 **Blocked by:** 06: Queue detail review mock action
 
-**Status:** ready-for-agent
+**Status:** done (51/51 green incl. release gates, eval 24/24, committed 2026-09-30)
 
-- [ ] All safety cases pass; factual diagnoses cite valid evidence; >=90% disposition on non-safety held-out with raw n/d reported
-- [ ] Baseline comparison shows where LLM earns place (ambiguous intake/evidence-request/handoff)
-- [ ] ROI formula editable with labeled assumptions; paired baseline-vs-prototype timings shown separately
-- [ ] README states what is built, what is synthetic, which ROI inputs need Replit confirmation
+- [x] All safety cases pass; factual diagnoses cite valid evidence; >=90% disposition on non-safety held-out with raw n/d reported
+- [x] Baseline comparison shows where LLM earns place (ambiguous intake/evidence-request/handoff)
+- [x] ROI formula editable with labeled assumptions; paired baseline-vs-prototype timings shown separately
+- [x] README states what is built, what is synthetic, which ROI inputs need Replit confirmation

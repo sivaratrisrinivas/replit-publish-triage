@@ -67,4 +67,10 @@ describe("review server", () => {
     expect(md).toContain("web1-ticket");
     expect(md).not.toMatch(/supersecret|sk-[A-Za-z0-9]{8,}/);
   });
+
+  it("roi page shows editable scenario with labeled assumptions", async () => {
+    const html = await (await fetch(`${baseUrl}/roi?eligible=100&minutes=25&cost=60`)).text();
+    expect(html).toContain("$2,500");
+    expect(html).toContain("assumption");
+  });
 });
