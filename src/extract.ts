@@ -2,6 +2,7 @@ import { z } from "zod";
 import { normalizeTicket, detectMissingEvidence } from "./normalize.js";
 import { redactText } from "./redact.js";
 import { completeChat } from "./llm.js";
+import { completeGemini } from "./gemini.js";
 
 export const ExtractionSchema = z.object({
   symptom: z.string().nullable(),
@@ -24,7 +25,7 @@ export interface ExtractInput {
 }
 
 export interface ExtractOptions {
-  llm?: { apiKey?: string; model?: string; fetchImpl?: typeof fetch };
+  llm?: { provider?: "gemini" | "openrouter"; apiKey?: string; model?: string; fetchImpl?: typeof fetch };
 }
 
 const LlmFactsSchema = z.object({
@@ -41,17 +42,32 @@ const EXTRACT_SYSTEM = `Extract structured facts from a synthetic support ticket
 
 async function llmFacts(ticketText: string, opts: NonNullable<ExtractOptions["llm"]>): Promise<LlmFacts | null> {
   try {
-    const res = await completeChat(
-      [
-        { role: "system", content: EXTRACT_SYSTEM },
-        { role: "user", content: ticketText.slice(0, 2000) },
-      ],
-      { apiKey: opts.apiKey, model: opts.model, fetchImpl: opts.fetchImpl },
-    );
-    const start = res.text.indexOf("{");
-    const end = res.text.lastIndexOf("}");
+    // Explicit key keeps the legacy OpenRouter contract; otherwise the
+    // environment decides, preferring Gemini when its key is present.
+    const provider =
+      opts.provider ?? (opts.apiKey ? "openrouter" : process.env.GEMINI_API_KEY ? "gemini" : "openrouter");
+    let text: string;
+    if (provider === "gemini") {
+      const res = await completeGemini(EXTRACT_SYSTEM, ticketText.slice(0, 2000), {
+        apiKey: opts.apiKey,
+        model: opts.model,
+        fetchImpl: opts.fetchImpl,
+      });
+      text = res.text;
+    } else {
+      const res = await completeChat(
+        [
+          { role: "system", content: EXTRACT_SYSTEM },
+          { role: "user", content: ticketText.slice(0, 2000) },
+        ],
+        { apiKey: opts.apiKey, model: opts.model, fetchImpl: opts.fetchImpl },
+      );
+      text = res.text;
+    }
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
     if (start === -1 || end === -1) return null;
-    return LlmFactsSchema.parse(JSON.parse(res.text.slice(start, end + 1)));
+    return LlmFactsSchema.parse(JSON.parse(text.slice(start, end + 1)));
   } catch {
     return null;
   }
@@ -158,13 +174,18 @@ function assemble(
 // Async path: tries the model for fact extraction when explicitly enabled,
 // otherwise identical to the sync path. Conflict detection, disposition, and
 // spans stay deterministic either way; any model failure falls back silently.
+// Note: free-tier keys rate-limit bursts; space live calls ~10s apart.
 export async function extractIncidentAsync(input: ExtractInput, opts: ExtractOptions = {}): Promise<Extraction> {
   const ticketText = redactText(input.ticketText ?? "");
   const logs = (input.logs ?? []).map((l) => redactText(l));
-  const enabled = process.env.PUBLISH_TRIAGE_LLM === "1" && (opts.llm?.apiKey || process.env.OPENROUTER_API_KEY);
+  const enabled = process.env.PUBLISH_TRIAGE_LLM === "1" && (opts.llm?.apiKey || process.env.OPENROUTER_API_KEY || process.env.GEMINI_API_KEY);
   if (enabled) {
+    const provider = opts.llm?.provider ?? (process.env.GEMINI_API_KEY ? "gemini" : "openrouter");
+    const apiKey =
+      opts.llm?.apiKey ?? (provider === "gemini" ? process.env.GEMINI_API_KEY : process.env.OPENROUTER_API_KEY);
     const facts = await llmFacts(ticketText, {
-      apiKey: opts.llm?.apiKey ?? process.env.OPENROUTER_API_KEY,
+      provider,
+      apiKey,
       model: opts.llm?.model,
       fetchImpl: opts.llm?.fetchImpl,
     });

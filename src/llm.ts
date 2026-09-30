@@ -28,6 +28,10 @@ export function resetLlmCallCount(): void {
   callCount = 0;
 }
 
+export function recordLlmCall(): void {
+  callCount += 1;
+}
+
 export async function completeChat(messages: LlmMessage[], opts: LlmOptions = {}): Promise<LlmResult> {
   const apiKey = opts.apiKey ?? process.env.OPENROUTER_API_KEY ?? "";
   if (!apiKey) throw new Error("OPENROUTER_API_KEY is not set");
