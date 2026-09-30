@@ -4,9 +4,9 @@
 
 **Blocked by:** 02: Deterministic intake to save
 
-**Status:** ready-for-agent
+**Status:** done (28/28 green, typecheck clean, reviewed + committed 2026-09-30 as f6c1f42)
 
-- [ ] Catalog lists fixed checks with prerequisites and hypothesis-discrimination rationale; no arbitrary commands/URLs
-- [ ] URL allowlist + timeouts + run caps enforced in code
-- [ ] Browser timeout stops and reports incomplete verification
-- [ ] Non-allowlisted URL receives no request (test proves)
+- [x] Catalog lists fixed checks with prerequisites and hypothesis-discrimination rationale; no arbitrary commands/URLs
+- [x] URL allowlist + timeouts + run caps enforced in code
+- [x] Browser timeout stops and reports incomplete verification
+- [x] Non-allowlisted URL receives no request (test proves)
