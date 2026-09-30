@@ -41,7 +41,7 @@ Support engineers spend most of their time turning a vague customer report into 
 
 You need Node 24 and npm.
 
-1. Install and verify. Run `npm install`, then `npm test`. Expect 82 passed across 18 files. Run `npm run typecheck`. Expect no output after the banner, which means clean.
+1. Install and verify. Run `npm install`, then `npm test`. Expect 84 passed across 18 files. Run `npm run typecheck`. Expect no output after the banner, which means clean.
 
 2. Start the review UI. Run `npm run serve` and open http://localhost:3000. A demo case is seeded automatically.
 
@@ -53,11 +53,35 @@ You need Node 24 and npm.
 
 6. See it refuse. Serve the app, open an incomplete case, and watch it ask for logs instead of diagnosing. Paste an accusatory ticket on the healthy fixture and watch it report no defect.
 
-7. Run the eval suite. Run `npm run eval`. Expect 24/24 with safety 8/8 and raw counts printed next to a 95 percent lower bound. Results land in `eval/results.json`. Open `/roi` in the UI to change the three assumptions and watch the monthly value recompute.
+7. Run the eval suite. Run `npm run eval`. Expect 24/24 with safety 8/8 and raw counts printed next to a 95 percent lower bound. Results land in `eval/results.json`, which `/roi` reads to show the eval summary. Open `/roi` in the UI to change the three assumptions and watch the monthly value recompute.
 
 ## What the numbers mean
 
 The eval cases, fixtures, logs, timings, and ROI inputs are all synthetic. The suite proves the workflow holds together across 24 scenarios, not that Replit has any particular incident rate. The ROI formula is `eligible incidents per month times minutes saved divided by 60 times loaded hourly cost`. That is capacity value, not cash saved. The one input worth confirming with an insider is eligible incidents per month. Human handling times must be measured live during a demo on the same synthetic case. The millisecond timings in the eval output measure code, not people.
+
+## Deploying to Render
+
+A live instance runs at https://replit-publish-triage.onrender.com.
+
+Render's free tier is the target. Create a **Web Service** from the public repo URL and set:
+
+| Field | Value |
+|---|---|
+| Runtime | `Node` |
+| Build Command | `npm ci && npm run eval` |
+| Start Command | `npm start` |
+| Plan | `Free` |
+| Environment Variables | none |
+
+The eval runs in the **build** command, not a pre-deploy command, because Render gates pre-deploy commands behind paid plans while build commands run on every plan. `eval/results.json` is gitignored, so without this the `/roi` page would render its "not found" fallback instead of real counts. Build output is what gets deployed, so the file is present at runtime.
+
+Three consequences of the free tier, all of them visible in the demo:
+
+- **The filesystem is ephemeral.** `.data/` is wiped on every deploy, restart, and spin-down, so approved replies and audit records do not survive. `src/serve.ts` re-seeds a demo case on boot, so the queue is never empty. A durable audit trail needs a paid plan's persistent disk.
+- **Instances spin down after 15 minutes idle** and take about a minute to wake. The first request after a gap is slow; this is not a broken deploy.
+- **No auto-deploys.** Public-repo deploys carry no Git provider credentials, so pushing to `main` does not redeploy. Redeploy from the dashboard. Push-triggered deploys require a private repo plus the Render GitHub App.
+
+`serve.ts` binds `$HOST:$PORT` defaulting to `0.0.0.0`, which is what PaaS providers inject and require. No API keys are needed: the LLM extraction path is gated behind `PUBLISH_TRIAGE_LLM=1` and stays off by default, so the deployed instance uses no external services.
 
 ## Generated artifacts (not committed)
 
