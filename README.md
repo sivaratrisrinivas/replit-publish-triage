@@ -2,6 +2,23 @@
 
 A support intake workbench for one report shape: preview works, the published app fails. You paste a ticket. The tool diffs preview against published config, runs up to three approved checks against owned demo apps, ranks causes using only the evidence on hand, and drafts a reply you edit, approve, or reject. Everything here is synthetic. No real customers, no production systems.
 
+## Try it
+
+**Live demo** — https://replit-publish-triage.onrender.com
+Two seeded cases. The first gets a diagnosis; the second looks like it should too, and the tool refuses. The free instance sleeps when idle, so expect a slow first load.
+
+**Video** — [`docs/demo/publish-triage-demo.webm`](docs/demo/publish-triage-demo.webm), 83 seconds. Both cases, including the refusal.
+
+**Locally** — Node 24 and npm:
+
+```bash
+git clone https://github.com/sivaratrisrinivas/replit-publish-triage.git
+cd replit-publish-triage
+npm install && npm run eval && npm start
+```
+
+Then open http://localhost:3000. `npm run eval` writes `eval/results.json`, which the `/roi` page reads for its eval summary.
+
 ## What it is
 
 A TypeScript pipeline with a small review UI. A ticket moves through intake, extraction, bounded checks, diagnosis, and human review. Each stage cites its evidence. When evidence runs out, the tool asks for more instead of guessing. Healthy apps get no invented defect.
@@ -47,13 +64,25 @@ The two release gates are: all 8 safety cases pass, and at least 90% of the 12 n
 
 The full pipeline beats the diff-only baseline on redirect and intermittent cases, where observed evidence matters and config comparison alone guesses. The community batch (forum and third-party reports, `community/`) found no mishandled failure mode. Live model calls beat the deterministic extractor on vague language but stay optional: the default path uses no model at all.
 
-## Why it exists
+### A caveat on the eval numbers
 
-Support engineers spend most of their time turning a vague customer report into something reproducible. Replit's publishing guide lists a finite set of things that differ between preview and published, so much of that work is mechanical: compare configs, reproduce, gather logs, write up the handoff. I built this to do the mechanical part first and leave the judgment to the engineer. It earns its place only if it shortens an investigation or improves a handoff. A polished explanation alone proves nothing, which is why every claim in the UI carries an evidence ID and every number in the eval section shows its raw count.
+I wrote the eval cases, so 24/24 measures internal consistency, not accuracy against real tickets. The baseline comparison is the fairer read: diff-only config comparison gets 8 of 10 on top-category, and the pipeline wins the two cases where a config diff cannot distinguish the cause. Treat the headline as a regression gate, not as evidence of accuracy.
+
+## The problem this is testing
+
+I suspect most of the time in a "preview works, published is broken" report goes into turning a vague customer message into something reproducible, not into the judgment call. I have not measured that. This project is a prototype built to test whether that split is real: take the mechanical part first, leave the judgment to the engineer, and see whether the handoff gets better.
+
+The reason I think the mechanical part is mechanical is that Replit's own documentation already enumerates the candidate causes. The [deployment and publishing guide](https://docs.replit.com/help/deployment-and-publishing) says a 500 on a live app is almost always a configuration difference between environments, and that development and production secrets live in separate stores where changing one does not update the other. [Publish your app](https://docs.replit.com/build/publish-your-app) describes preview and published as separate environments that do not share state until you publish. That is a finite, checkable list: config diff, secret sets, start command, host and port binding, deployment type.
+
+Every one of those is a comparison, so the tool makes the comparison, cites it, and asks for a probe rather than asserting a cause.
+
+I have no Replit incident data and no support engineer interviews behind any of this, which is why the cases are synthetic and labelled as such. The claim being tested is narrow: that a bounded check plus cited evidence produces a better handoff than a confident guess. Whether it does is not something this repo can establish, only something a support team could try.
+
+A polished explanation alone proves nothing, which is why every claim in the UI carries an evidence ID and every number in the eval section shows its raw count.
 
 ## How to run it
 
-You need Node 24 and npm.
+You need Node 24 and npm. The setup command is in [Try it](#try-it) above.
 
 1. Install and verify. Run `npm install`, then `npm test`. Expect 93 passed across 18 files. Run `npm run typecheck`. Expect no output after the banner, which means clean.
 
@@ -75,7 +104,7 @@ The eval cases, fixtures, logs, timings, and ROI inputs are all synthetic. The s
 
 ## Deploying to Render
 
-A live instance runs at https://replit-publish-triage.onrender.com.
+A live instance runs at https://replit-publish-triage.onrender.com. The demo at the top of this README is that instance.
 
 Render's free tier is the target. Create a **Web Service** from the public repo URL and set:
 
@@ -97,9 +126,9 @@ Three consequences of the free tier, all of them visible in the demo:
 
 `serve.ts` binds `$HOST:$PORT` defaulting to `0.0.0.0`, which is what PaaS providers inject and require. No API keys are needed: the LLM extraction path is gated behind `PUBLISH_TRIAGE_LLM=1` and stays off by default, so the deployed instance uses no external services.
 
-## Demo
+## Demo detail
 
-`docs/demo/publish-triage-demo.webm` — 83 seconds, 1280x720. Recorded with Playwright against a local instance of `main`; every fixture, ticket, and log is synthetic. `DEMO.md` is the script it follows.
+The recording is at the top of this README; this is what it shows. `docs/demo/publish-triage-demo.webm`, 83 seconds, 1280x720, recorded with Playwright against a local instance of `main`. Every fixture, ticket, and log is synthetic. `DEMO.md` is the script it follows, with matching timestamps.
 
 The walkthrough runs two seeded cases back to back, because the interesting behaviour is the contrast:
 
