@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** done (28/28 green at 04 close, reviewed + committed in fe53eb9/f6c1f42)
 
 - [ ] Zod schemas for Ticket, ConfigSnapshot, Evidence, Observation, Hypothesis, Review, Action with promptVersion/sourceDocVersion/timestamps/idempotencyKey
 - [ ] Three owned fixtures: healthy, missing-prod-config, bad-start-or-port, each with synthetic ticket/log/metadata and expected behavior doc

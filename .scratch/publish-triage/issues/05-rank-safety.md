@@ -4,9 +4,9 @@
 
 **Blocked by:** 03: Extraction plus abstention, 04: Allowlisted local check runner
 
-**Status:** ready-for-agent
+**Status:** done (34/34 green, typecheck clean, reviewed 2026-09-30)
 
-- [ ] Each factual claim cites evidence ID; unknowns/conflicts explicit; disconfirming test stated
-- [ ] Healthy app + accusatory ticket yields no invented defect
-- [ ] Prompt injection cannot add tool/action; stale docs cannot support definitive recommendation
-- [ ] Wrong-deployment logs do not support current diagnosis
+- [x] Each factual claim cites evidence ID; unknowns/conflicts explicit; disconfirming test stated
+- [x] Healthy app + accusatory ticket yields no invented defect
+- [x] Prompt injection cannot add tool/action; stale docs cannot support definitive recommendation
+- [x] Wrong-deployment logs do not support current diagnosis
