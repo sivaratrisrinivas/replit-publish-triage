@@ -1,0 +1,119 @@
+{
+  "meta": {
+    "style": "accusatory-demanding",
+    "evidence": "matching-logs",
+    "distractor": "unrelated-system-blame",
+    "fixtureId": "bad-start-port"
+  },
+  "ticket": "You people broke my app with your latest update. Published times out completely. Logs show some wrong entrypoint and loopback bind nonsense. And your database has been slow all week too, probably related — check that as well.",
+  "diffs": [
+    {
+      "field": "deploymentType",
+      "preview": "autoscale",
+      "published": "reserved-vm"
+    },
+    {
+      "field": "startCommand",
+      "preview": "npm start",
+      "published": "node wrong-entry.js"
+    },
+    {
+      "field": "host",
+      "preview": "0.0.0.0",
+      "published": "127.0.0.1"
+    },
+    {
+      "field": "port",
+      "preview": 3000,
+      "published": 5000
+    }
+  ],
+  "extraction": {
+    "symptom": "You people broke my app with your latest update.",
+    "expected": null,
+    "actual": null,
+    "environment": "published",
+    "timestamp": null,
+    "deploymentType": null,
+    "spans": {
+      "symptom": "You people broke my app with your latest update. Published times out completely. Logs show some wrong entrypoint and loopback bind nonsense. And your database has been slow all week too, probably rela",
+      "expected": null,
+      "actual": null,
+      "environment": "e broke my app with your latest update. Published times out completely. Logs show some wrong entrypoint and loopback bind nonsense. And your database has been s",
+      "timestamp": null,
+      "deploymentType": null
+    },
+    "conflicts": [],
+    "disposition": "needs-evidence",
+    "evidenceRequest": [
+      "timestamp",
+      "deploymentType",
+      "prodConfigValues",
+      "actualBehavior"
+    ],
+    "provider": "deterministic"
+  },
+  "observations": [
+    {
+      "observationId": "s08-obs-preview-http-reachable",
+      "checkName": "preview-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.157Z",
+      "finishedAt": "2026-09-30T19:07:58.157Z",
+      "outcome": "pass",
+      "detail": "preview-http-reachable: HTTP 200 at https://badport-preview.example.invalid body=ok",
+      "evidenceIds": [
+        "s08-obs-preview-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s08-obs-published-http-reachable",
+      "checkName": "published-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.158Z",
+      "finishedAt": "2026-09-30T19:07:58.158Z",
+      "outcome": "fail",
+      "detail": "published-http-reachable: HTTP 503 at https://badport-published.example.invalid body=ok",
+      "evidenceIds": [
+        "s08-obs-published-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s08-obs-config-start-port-audit",
+      "checkName": "config-start-port-audit",
+      "startedAt": "2026-09-30T19:07:58.158Z",
+      "finishedAt": "2026-09-30T19:07:58.158Z",
+      "outcome": "fail",
+      "detail": "startCommand differs: preview=npm start published=node wrong-entry.js; host differs: preview=0.0.0.0 published=127.0.0.1; port differs: preview=3000 published=5000; published binds loopback (127.0.0.1); unreachable from public URL",
+      "evidenceIds": [
+        "s08-obs-config-start-port-audit"
+      ]
+    }
+  ],
+  "diagnosis": {
+    "hypotheses": [
+      {
+        "hypothesisId": "s08-hyp-1",
+        "category": "published-startup-config",
+        "rank": 1,
+        "evidenceIds": [
+          "s08-ticket",
+          "s08-config-diff",
+          "s08-obs-config-start-port-audit"
+        ],
+        "disconfirmingTest": "Fix start command and bind 0.0.0.0 on the published port, then re-run published-http-reachable; reachable disconfirms.",
+        "uncertainty": "Startup drift is observed; the reason for the drift (manual edit vs deploy pipeline) is unknown."
+      }
+    ],
+    "abstention": null,
+    "conflicts": [],
+    "unknowns": [
+      "timestamp",
+      "deploymentType"
+    ],
+    "injectionFlagged": false,
+    "definitive": true,
+    "evidenceBar": {
+      "passed": true,
+      "reason": "customer-supplied log for the current deployment"
+    }
+  }
+}

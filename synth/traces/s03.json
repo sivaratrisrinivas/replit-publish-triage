@@ -1,0 +1,111 @@
+{
+  "meta": {
+    "style": "vague-urgent",
+    "evidence": "no-evidence",
+    "distractor": "none",
+    "fixtureId": "missing-prod-config"
+  },
+  "ticket": "my app is broken after publishing please fix ASAP!!! preview was working yesterday",
+  "diffs": [
+    {
+      "field": "envVarNames",
+      "preview": [
+        "DATABASE_URL",
+        "NODE_ENV",
+        "PUBLIC_URL"
+      ],
+      "published": [
+        "NODE_ENV",
+        "PUBLIC_URL"
+      ]
+    },
+    {
+      "field": "secretsPresentNames",
+      "preview": [
+        "PROD_LOGIN_KEY",
+        "SESSION_SECRET"
+      ],
+      "published": [
+        "SESSION_SECRET"
+      ]
+    }
+  ],
+  "extraction": {
+    "symptom": "my app is broken after publishing please fix ASAP!!!",
+    "expected": null,
+    "actual": null,
+    "environment": "preview",
+    "timestamp": null,
+    "deploymentType": null,
+    "spans": {
+      "symptom": "my app is broken after publishing please fix ASAP!!! preview was working yesterday",
+      "expected": null,
+      "actual": null,
+      "environment": "ken after publishing please fix ASAP!!! preview was working yesterday",
+      "timestamp": null,
+      "deploymentType": null
+    },
+    "conflicts": [],
+    "disposition": "needs-evidence",
+    "evidenceRequest": [
+      "timestamp",
+      "deploymentType",
+      "logs",
+      "startCommand",
+      "hostPortBinding",
+      "prodConfigValues",
+      "actualBehavior"
+    ],
+    "provider": "deterministic"
+  },
+  "observations": [
+    {
+      "observationId": "s03-obs-preview-http-reachable",
+      "checkName": "preview-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.091Z",
+      "finishedAt": "2026-09-30T19:07:58.091Z",
+      "outcome": "pass",
+      "detail": "preview-http-reachable: HTTP 200 at https://missing-preview.example.invalid body=ok",
+      "evidenceIds": [
+        "s03-obs-preview-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s03-obs-published-http-reachable",
+      "checkName": "published-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.091Z",
+      "finishedAt": "2026-09-30T19:07:58.091Z",
+      "outcome": "fail",
+      "detail": "published-http-reachable: HTTP 500 at https://missing-published.example.invalid body=ok",
+      "evidenceIds": [
+        "s03-obs-published-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s03-obs-published-login-probe",
+      "checkName": "published-login-probe",
+      "startedAt": "2026-09-30T19:07:58.092Z",
+      "finishedAt": "2026-09-30T19:07:58.092Z",
+      "outcome": "fail",
+      "detail": "published-login-probe: HTTP 500 at https://missing-published.example.invalid/login body=missing PROD_LOGIN_KEY",
+      "evidenceIds": [
+        "s03-obs-published-login-probe"
+      ]
+    }
+  ],
+  "diagnosis": {
+    "hypotheses": [],
+    "abstention": "Insufficient customer-supplied support (no customer-supplied log, concrete symptom, or detailed report). Request evidence instead of guessing.",
+    "conflicts": [],
+    "unknowns": [
+      "timestamp",
+      "deploymentType"
+    ],
+    "injectionFlagged": false,
+    "definitive": false,
+    "evidenceBar": {
+      "passed": false,
+      "reason": "no customer-supplied log, concrete symptom, or detailed report"
+    }
+  }
+}

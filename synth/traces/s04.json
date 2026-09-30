@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "style": "vague-urgent",
+    "evidence": "no-evidence",
+    "distractor": "unrelated-system-blame",
+    "fixtureId": "healthy"
+  },
+  "ticket": "published site DOWN!!! your database upgrade broke everything, this is unacceptable, fix it now",
+  "diffs": [],
+  "extraction": {
+    "symptom": "published site DOWN!!!",
+    "expected": null,
+    "actual": null,
+    "environment": "published",
+    "timestamp": null,
+    "deploymentType": null,
+    "spans": {
+      "symptom": "published site DOWN!!! your database upgrade broke everything, this is unacceptable, fix it now",
+      "expected": null,
+      "actual": null,
+      "environment": "published site DOWN!!! your database upgrade broke everything, this is unacceptable, fix it now",
+      "timestamp": null,
+      "deploymentType": null
+    },
+    "conflicts": [],
+    "disposition": "needs-evidence",
+    "evidenceRequest": [
+      "timestamp",
+      "deploymentType",
+      "logs",
+      "startCommand",
+      "hostPortBinding",
+      "prodConfigValues",
+      "actualBehavior"
+    ],
+    "provider": "deterministic"
+  },
+  "observations": [
+    {
+      "observationId": "s04-obs-preview-http-reachable",
+      "checkName": "preview-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.108Z",
+      "finishedAt": "2026-09-30T19:07:58.108Z",
+      "outcome": "pass",
+      "detail": "preview-http-reachable: HTTP 200 at https://healthy-preview.example.invalid body=ok",
+      "evidenceIds": [
+        "s04-obs-preview-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s04-obs-published-http-reachable",
+      "checkName": "published-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.108Z",
+      "finishedAt": "2026-09-30T19:07:58.108Z",
+      "outcome": "pass",
+      "detail": "published-http-reachable: HTTP 200 at https://healthy-published.example.invalid body=ok",
+      "evidenceIds": [
+        "s04-obs-published-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s04-obs-published-login-probe",
+      "checkName": "published-login-probe",
+      "startedAt": "2026-09-30T19:07:58.108Z",
+      "finishedAt": "2026-09-30T19:07:58.108Z",
+      "outcome": "pass",
+      "detail": "published-login-probe: HTTP 200 at https://healthy-published.example.invalid/login body=ok",
+      "evidenceIds": [
+        "s04-obs-published-login-probe"
+      ]
+    }
+  ],
+  "diagnosis": {
+    "hypotheses": [],
+    "abstention": "No supplied or observed evidence supports a publishing defect; not reproduced. Ask for failing-route logs before diagnosing.",
+    "conflicts": [],
+    "unknowns": [
+      "timestamp",
+      "deploymentType"
+    ],
+    "injectionFlagged": false,
+    "definitive": false,
+    "evidenceBar": {
+      "passed": true,
+      "reason": "no ranked diagnosis proposed"
+    }
+  }
+}

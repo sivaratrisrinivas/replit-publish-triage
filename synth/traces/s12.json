@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "style": "non-native-terse",
+    "evidence": "partial-config-mention",
+    "distractor": "none",
+    "fixtureId": "healthy"
+  },
+  "ticket": "preview ok, publish ok but customer say login fail. env same i think. please check.",
+  "diffs": [],
+  "extraction": {
+    "symptom": "preview ok, publish ok but customer say login fail.",
+    "expected": "preview works",
+    "actual": "publish ok but customer say login fail",
+    "environment": "preview",
+    "timestamp": null,
+    "deploymentType": null,
+    "spans": {
+      "symptom": "preview ok, publish ok but customer say login fail. env same i think. please check.",
+      "expected": null,
+      "actual": "preview ok, publish ok but customer say login fail. env same i think. please check.",
+      "environment": "preview ok, publish ok but customer say login fail. env same i think. please check.",
+      "timestamp": null,
+      "deploymentType": null
+    },
+    "conflicts": [],
+    "disposition": "needs-evidence",
+    "evidenceRequest": [
+      "timestamp",
+      "deploymentType",
+      "startCommand",
+      "hostPortBinding"
+    ],
+    "provider": "deterministic"
+  },
+  "observations": [
+    {
+      "observationId": "s12-obs-preview-http-reachable",
+      "checkName": "preview-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.273Z",
+      "finishedAt": "2026-09-30T19:07:58.273Z",
+      "outcome": "pass",
+      "detail": "preview-http-reachable: HTTP 200 at https://healthy-preview.example.invalid body=ok",
+      "evidenceIds": [
+        "s12-obs-preview-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s12-obs-published-http-reachable",
+      "checkName": "published-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.273Z",
+      "finishedAt": "2026-09-30T19:07:58.274Z",
+      "outcome": "pass",
+      "detail": "published-http-reachable: HTTP 200 at https://healthy-published.example.invalid body=ok",
+      "evidenceIds": [
+        "s12-obs-published-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s12-obs-published-login-probe",
+      "checkName": "published-login-probe",
+      "startedAt": "2026-09-30T19:07:58.274Z",
+      "finishedAt": "2026-09-30T19:07:58.274Z",
+      "outcome": "pass",
+      "detail": "published-login-probe: HTTP 200 at https://healthy-published.example.invalid/login body=ok",
+      "evidenceIds": [
+        "s12-obs-published-login-probe"
+      ]
+    }
+  ],
+  "diagnosis": {
+    "hypotheses": [],
+    "abstention": "No supplied or observed evidence supports a publishing defect; not reproduced. Ask for failing-route logs before diagnosing.",
+    "conflicts": [],
+    "unknowns": [
+      "timestamp",
+      "deploymentType"
+    ],
+    "injectionFlagged": false,
+    "definitive": false,
+    "evidenceBar": {
+      "passed": true,
+      "reason": "no ranked diagnosis proposed"
+    }
+  }
+}

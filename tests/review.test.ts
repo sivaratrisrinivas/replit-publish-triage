@@ -21,6 +21,7 @@ const diagnosis: DiagnoseOutput = {
   unknowns: ["timestamp"],
   injectionFlagged: false,
   definitive: false,
+  evidenceBar: { passed: true, reason: "test fixture" },
 };
 
 const caseData = {

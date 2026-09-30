@@ -16,7 +16,7 @@ export function normalizeTicket(ticketText: string): NormalizedFacts {
   const firstSentence = text.split(/(?<=[.!?])\s+/)[0]?.slice(0, 280) ?? "";
 
   const hasPreviewOk = /preview\s+(works|ok|loads|succeeds)/i.test(text);
-  const actualMatch = text.match(/publish\w*[^\n.]{0,120}(fail\w*|500|502|503|timeout|not\s+avail\w*|unreach\w*|error)/i);
+  const actualMatch = text.match(/publish\w*[^\n.]{0,120}(fail\w*|500|502|503|timeout|timed out|not\s+avail\w*|unreach\w*|never comes up|is down|won't load|doesn't load|not loading|error)/i);
 
   const tsMatch = text.match(ISO_PATTERN);
   const deployMatch = text.match(DEPLOY_PATTERN);

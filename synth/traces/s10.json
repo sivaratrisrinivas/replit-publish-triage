@@ -1,0 +1,120 @@
+{
+  "meta": {
+    "style": "pasted-log-dump",
+    "evidence": "wrong-deployment-logs",
+    "distractor": "none",
+    "fixtureId": "missing-prod-config"
+  },
+  "ticket": "published login broken since today. attaching logs from last week if it helps:\n2026-09-20T09:11:02Z [published] POST /login 500 fail (deploy-2026-09-20)\n2026-09-20T09:11:03Z [published] server restart (deploy-2026-09-20)",
+  "diffs": [
+    {
+      "field": "envVarNames",
+      "preview": [
+        "DATABASE_URL",
+        "NODE_ENV",
+        "PUBLIC_URL"
+      ],
+      "published": [
+        "NODE_ENV",
+        "PUBLIC_URL"
+      ]
+    },
+    {
+      "field": "secretsPresentNames",
+      "preview": [
+        "PROD_LOGIN_KEY",
+        "SESSION_SECRET"
+      ],
+      "published": [
+        "SESSION_SECRET"
+      ]
+    }
+  ],
+  "extraction": {
+    "symptom": "published login broken since today.",
+    "expected": null,
+    "actual": "published] POST /login 500 fail",
+    "environment": "published",
+    "timestamp": "2026-09-20T09:11:02Z",
+    "deploymentType": null,
+    "spans": {
+      "symptom": "published login broken since today. attaching logs from last week if it helps:\n2026-09-20T09:11:02Z [published] POST /login 500 fail (deploy-2026-09-20)\n2026-09-20T09:11:03Z [published] server restart",
+      "expected": null,
+      "actual": "week if it helps:\n2026-09-20T09:11:02Z [published] POST /login 500 fail (deploy-2026-09-20)\n2026-09-20T09:11:03Z [published] server restart (deploy-2026-09-20)",
+      "environment": "published login broken since today. attaching logs from last week if it helps:\n2026-09-20T09:11:02Z [published] POST /lo",
+      "timestamp": "aching logs from last week if it helps:\n2026-09-20T09:11:02Z [published] POST /login 500 fail (deploy-2026-09-20)\n2026-09-20T09:11:03Z [published] server restar",
+      "deploymentType": null
+    },
+    "conflicts": [],
+    "disposition": "needs-evidence",
+    "evidenceRequest": [
+      "deploymentType",
+      "hostPortBinding",
+      "prodConfigValues"
+    ],
+    "provider": "deterministic"
+  },
+  "observations": [
+    {
+      "observationId": "s10-obs-preview-http-reachable",
+      "checkName": "preview-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.193Z",
+      "finishedAt": "2026-09-30T19:07:58.193Z",
+      "outcome": "pass",
+      "detail": "preview-http-reachable: HTTP 200 at https://missing-preview.example.invalid body=ok",
+      "evidenceIds": [
+        "s10-obs-preview-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s10-obs-published-http-reachable",
+      "checkName": "published-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.193Z",
+      "finishedAt": "2026-09-30T19:07:58.193Z",
+      "outcome": "fail",
+      "detail": "published-http-reachable: HTTP 500 at https://missing-published.example.invalid body=ok",
+      "evidenceIds": [
+        "s10-obs-published-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s10-obs-published-login-probe",
+      "checkName": "published-login-probe",
+      "startedAt": "2026-09-30T19:07:58.193Z",
+      "finishedAt": "2026-09-30T19:07:58.193Z",
+      "outcome": "fail",
+      "detail": "published-login-probe: HTTP 500 at https://missing-published.example.invalid/login body=missing PROD_LOGIN_KEY",
+      "evidenceIds": [
+        "s10-obs-published-login-probe"
+      ]
+    }
+  ],
+  "diagnosis": {
+    "hypotheses": [
+      {
+        "hypothesisId": "s10-hyp-1",
+        "category": "missing-production-config",
+        "rank": 1,
+        "evidenceIds": [
+          "s10-ticket",
+          "s10-config-diff",
+          "s10-obs-published-login-probe"
+        ],
+        "disconfirmingTest": "Copy the named production value to published and re-run published-login-probe; a 200 disconfirms.",
+        "uncertainty": "Proves a config gap plus observed failure, not which deploy step dropped the value."
+      }
+    ],
+    "abstention": null,
+    "conflicts": [],
+    "unknowns": [
+      "deploymentType",
+      "wrong-deployment evidence excluded: s10-log-1"
+    ],
+    "injectionFlagged": false,
+    "definitive": true,
+    "evidenceBar": {
+      "passed": true,
+      "reason": "ticket names a concrete symptom"
+    }
+  }
+}

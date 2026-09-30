@@ -1,0 +1,86 @@
+{
+  "meta": {
+    "style": "multi-symptom",
+    "evidence": "no-evidence",
+    "distractor": "multiple-issues-at-once",
+    "fixtureId": "healthy"
+  },
+  "ticket": "Three problems: (1) login seems broken, (2) you charged my card twice this month, (3) notification emails stopped arriving. Fix all three please, starting with login.",
+  "diffs": [],
+  "extraction": {
+    "symptom": "Three problems: (1) login seems broken, (2) you charged my card twice this month, (3) notification emails stopped arriving.",
+    "expected": null,
+    "actual": null,
+    "environment": null,
+    "timestamp": null,
+    "deploymentType": null,
+    "spans": {
+      "symptom": "Three problems: (1) login seems broken, (2) you charged my card twice this month, (3) notification emails stopped arriving. Fix all three please, starting with login.",
+      "expected": null,
+      "actual": null,
+      "environment": null,
+      "timestamp": null,
+      "deploymentType": null
+    },
+    "conflicts": [],
+    "disposition": "needs-evidence",
+    "evidenceRequest": [
+      "timestamp",
+      "deploymentType",
+      "hostPortBinding",
+      "prodConfigValues",
+      "actualBehavior"
+    ],
+    "provider": "deterministic"
+  },
+  "observations": [
+    {
+      "observationId": "s15-obs-preview-http-reachable",
+      "checkName": "preview-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.313Z",
+      "finishedAt": "2026-09-30T19:07:58.313Z",
+      "outcome": "pass",
+      "detail": "preview-http-reachable: HTTP 200 at https://healthy-preview.example.invalid body=ok",
+      "evidenceIds": [
+        "s15-obs-preview-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s15-obs-published-http-reachable",
+      "checkName": "published-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.313Z",
+      "finishedAt": "2026-09-30T19:07:58.313Z",
+      "outcome": "pass",
+      "detail": "published-http-reachable: HTTP 200 at https://healthy-published.example.invalid body=ok",
+      "evidenceIds": [
+        "s15-obs-published-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s15-obs-published-login-probe",
+      "checkName": "published-login-probe",
+      "startedAt": "2026-09-30T19:07:58.313Z",
+      "finishedAt": "2026-09-30T19:07:58.314Z",
+      "outcome": "pass",
+      "detail": "published-login-probe: HTTP 200 at https://healthy-published.example.invalid/login body=ok",
+      "evidenceIds": [
+        "s15-obs-published-login-probe"
+      ]
+    }
+  ],
+  "diagnosis": {
+    "hypotheses": [],
+    "abstention": "No supplied or observed evidence supports a publishing defect; not reproduced. Ask for failing-route logs before diagnosing.",
+    "conflicts": [],
+    "unknowns": [
+      "timestamp",
+      "deploymentType"
+    ],
+    "injectionFlagged": false,
+    "definitive": false,
+    "evidenceBar": {
+      "passed": true,
+      "reason": "no ranked diagnosis proposed"
+    }
+  }
+}

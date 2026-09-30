@@ -187,6 +187,7 @@ export function createApp(opts: ServerOptions = {}): Server {
         unknowns: record.extraction.evidenceRequest,
         injectionFlagged: false,
         definitive: false,
+        evidenceBar: { passed: false, reason: "server review path does not re-diagnose" },
       };
 
       if (req.method === "GET" && (suffix === "" || suffix === "/")) {

@@ -1,0 +1,134 @@
+<!doctype html>
+<html><head><meta charset="utf8"><title>Error discovery — publish triage traces</title>
+<style>
+body{font-family:Georgia,serif;margin:0;background:#fafafa;color:#222}
+#topbar{background:#1f2937;color:#fff;padding:10px 16px;display:flex;gap:12px;align-items:center}
+#topbar button{background:#374151;color:#fff;border:1px solid #555;padding:6px 12px;cursor:pointer}
+#topbar button.active{background:#2563eb}
+#toast{background:#fef3c7;padding:6px 16px;display:none}
+.wrap{display:flex;max-width:1100px;margin:0 auto}
+#body{flex:1;max-width:720px;padding:16px}
+#margin{width:250px;padding:16px 8px;position:relative}
+.note{position:absolute;width:234px;background:#fffbe6;border-left:4px solid #d97706;padding:6px;font-size:13px;font-family:Arial,sans-serif}
+.note.suggestion{border-left-color:#6b7280;background:#f3f4f6}
+.note .q{color:#555;font-style:italic}
+.note button{font-size:11px;margin-right:4px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-family:Arial;color:#fff}
+.d-diagnosed{background:#15803d}.d-conflict{background:#b91c1c}.d-evidence{background:#b45309}
+.hl{background:#fde68a}.hl.sug{background:transparent;border-bottom:2px dashed #6b7280}
+.stage{border:1px solid #ddd;border-radius:6px;padding:10px;margin:12px 0;background:#fff}
+.stage h3{margin:0 0 6px;font-family:Arial;font-size:14px}
+.ticket{background:#eff6ff}.extract{background:#f5f3ff}.obs{background:#ecfdf5}.diag{background:#fff7ed}
+.meta{font-size:12px;color:#666;font-family:Arial}
+.mono{font-family:monospace;font-size:13px}
+.obsbox{border:1px solid #a7f3d0;border-radius:4px;padding:6px;margin:6px 0;background:#f0fdf4}
+#popover{position:absolute;display:none;background:#111;color:#fff;padding:8px;border-radius:6px;z-index:10}
+#popover input{width:220px}
+.dot{stroke:#333}
+table{border-collapse:collapse;font-family:Arial;font-size:13px}
+td,th{border:1px solid #ccc;padding:4px 8px}
+.tm{display:inline-block;color:#fff;padding:8px;margin:4px;font-family:Arial;font-size:13px;vertical-align:top}
+</style></head><body>
+<div id="topbar">
+<strong>Error discovery</strong>
+<button data-v="content" class="active">Content</button>
+<button data-v="map">Map</button>
+<button data-v="progress">Progress</button>
+<span id="pos" style="margin-left:auto"></span>
+<button id="prev">‹ Prev</button>
+<button id="next">Next ›</button>
+</div>
+<div id="toast"></div>
+<div class="wrap">
+<div id="body"></div>
+<div id="margin"></div>
+</div>
+<div id="popover"><input id="noteinput" placeholder="note, Enter to save"><button id="cancelpop">×</button></div>
+<script>
+let samples=[],annotations=[],graph={nodes:[]},patterns={},suggestions=[],idx=0,view="content",pendingRange=null;
+async function jget(p){return (await fetch(p)).json()}
+async function jpost(p,o){await fetch(p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)})}
+async function load(){samples=await jget("/api/samples");annotations=await jget("/api/annotations");graph=await jget("/api/graph");patterns=await jget("/api/patterns");suggestions=await jget("/api/suggestions");render()}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",3000)}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function dispClass(d){return d==="conflicted"?"d-conflict":(d==="needs-evidence"?"d-evidence":"d-diagnosed")}
+function render(){
+document.querySelectorAll("#topbar button[data-v]").forEach(b=>b.classList.toggle("active",b.dataset.v===view));
+if(view==="content")renderContent();else if(view==="map")renderMap();else renderProgress();
+}
+function hypList(d){return (d.hypotheses||[]).map(h=>`<div class="obsbox"><b>${esc(h.category)}</b> (rank ${h.rank})<br><span class="meta">evidence: ${esc((h.evidenceIds||[]).join(", "))}</span><br>Disconfirm: ${esc(h.disconfirmingTest)}<br><i>Uncertainty: ${esc(h.uncertainty)}</i></div>`).join("")||"<i>none</i>"}
+function renderContent(){
+const s=samples[idx];if(!s){document.getElementById("body").innerHTML="<p>No samples.</p>";return}
+document.getElementById("pos").textContent=`${idx+1} / ${samples.length}`;
+const flags=(s.flags||[]).map(f=>` <span class="badge" style="background:#555">${esc(f)}</span>`).join("");
+let h=`<div class="meta">${esc(s.id)} · style=${esc(s.style)} · evidence=${esc(s.evidence)} · distractor=${esc(s.distractor)} · fixture=${esc(s.fixture)}${flags}</div>`;
+h+=`<h2>${esc(s.id)} <span class="badge ${dispClass(s.disposition)}">${esc(s.disposition)}</span> <span class="badge" style="background:#333">${esc(s.top||"abstain")}</span></h2>`;
+h+=`<div class="stage ticket"><h3>Customer ticket</h3><p>${esc(s.ticket).replace(/\n/g,"<br>")}</p></div>`;
+h+=`<div class="stage extract"><h3>Extraction</h3><div class="meta">expected=${esc(s.expected)} actual=${esc(s.actual)} · missing: ${esc(s.missing)}</div></div>`;
+h+=`<div class="stage obs"><h3>Observations (${s.nobs})</h3>${s.obs.map(o=>`<div class="obsbox"><b>${esc(o.check)}</b> — ${esc(o.outcome)}<br>${esc(o.detail)}</div>`).join("")}</div>`;
+h+=`<div class="stage diag"><h3>Diagnosis</h3>${hypList(s.diag)}${s.abstention?`<p><i>Abstention: ${esc(s.abstention)}</i></p>`:""}</div>`;
+document.getElementById("body").innerHTML=h;renderMargin();
+}
+function renderMargin(){
+const m=document.getElementById("margin");m.innerHTML="";
+const mine=annotations.filter(a=>a.sample===samples[idx].id);
+const sug=suggestions.filter(s=>s.sample===samples[idx].id&&!s.resolved);
+mine.forEach((a,i)=>{const d=document.createElement("div");d.className="note";d.style.top=(20+i*90)+"px";d.innerHTML=`<div class="q">${esc(a.quote)}</div><div>${esc(a.note)}</div>`;m.appendChild(d)});
+sug.forEach((s2,i)=>{const d=document.createElement("div");d.className="note suggestion";d.style.top=(20+(mine.length+i)*90)+"px";d.innerHTML=`<b>agent suggestion</b><div class="q">${esc(s2.quote)}</div><div>${esc(s2.text)}</div><div><button data-ai="${i}" data-act="accept">accept</button><button data-ai="${i}" data-act="dismiss">dismiss</button></div>`;m.appendChild(d)});
+m.querySelectorAll("button[data-ai]").forEach(b=>b.onclick=async()=>{
+const s2=sug[+b.dataset.ai];
+if(b.dataset.act==="accept"){annotations.push({sample:s2.sample,quote:s2.quote,note:"[accepted] "+s2.text});await jpost("/api/annotations",annotations)}
+s2.resolved=true;await jpost("/api/suggestions",suggestions);await load();
+});
+}
+function renderMap(){
+const nodes=graph.nodes||[];
+let h=`<h2>Trace map (${nodes.length})</h2><svg id="map" width="700" height="440" style="background:#fff;border:1px solid #ddd">`;
+const cols={"missing-production-config":"#15803d","published-startup-config":"#2563eb","redirect-config":"#7c3aed","intermittent-unverified":"#b45309","abstain":"#999"};
+nodes.forEach((n,i)=>{const c=cols[n.top]||"#999";const ann=annotations.some(a=>a.sample===n.id);const x=20+n.x*660,y=20+n.y*400;
+h+=`<circle class="dot" cx="${x}" cy="${y}" r="${n.inSample?8:5}" fill="${ann?"#f97316":c}" data-i="${i}"><title>${esc(n.id)} ${esc(n.top)} (${ann?"annotated":"unannotated"})</title></circle>`});
+h+=`</svg><p class="meta">green/blue/purple/amber = top category · grey = abstain · orange = annotated · larger = in sample. Click a node to open it.</p>`;
+document.getElementById("body").innerHTML=h;document.getElementById("margin").innerHTML="";
+document.querySelectorAll("#map circle").forEach(el=>el.onclick=()=>{const n=nodes[+el.dataset.i];const j=samples.findIndex(s=>s.id===n.id);if(j>=0){idx=j;view="content";render()}});
+}
+function renderProgress(){
+const byMode={};annotations.forEach(a=>{const k=a.mode||"uncategorized";(byMode[k]=byMode[k]||[]).push(a)});
+const modes=Object.keys(byMode);const max=Math.max(1,...modes.map(k=>byMode[k].length));
+let h=`<h2>Progress — ${annotations.length} annotations</h2>`;
+modes.forEach(k=>{const w=60+240*byMode[k].length/max;h+=`<div class="tm" style="background:#1f2937;width:${w}px">${esc(k)} (${byMode[k].length})</div>`});
+const pend=suggestions.filter(s=>!s.resolved);
+h+=`<h3>Agent suggestions (${pend.length} pending)</h3><table>`;
+pend.forEach((s,i)=>{h+=`<tr><td><input type="checkbox" data-si="${i}" checked></td><td>${esc(s.sample)}</td><td>${esc(s.text)}</td><td><i>${esc(s.quote.slice(0,80))}</i></td></tr>`});
+h+=`</table><button id="accsel">Accept selected</button> <button id="dissel">Dismiss selected</button>`;
+document.getElementById("body").innerHTML=h;document.getElementById("margin").innerHTML="";
+document.getElementById("accsel").onclick=async()=>{
+document.querySelectorAll("input[data-si]:checked").forEach(cb=>{const s=pend[+cb.dataset.si];annotations.push({sample:s.sample,quote:s.quote,note:"[accepted] "+s.text});s.resolved=true});
+await jpost("/api/annotations",annotations);await jpost("/api/suggestions",suggestions);await load();toast("accepted")};
+document.getElementById("dissel").onclick=async()=>{
+document.querySelectorAll("input[data-si]:checked").forEach(cb=>{pend[+cb.dataset.si].resolved=true});
+await jpost("/api/suggestions",suggestions);await load();toast("dismissed")};
+}
+document.querySelectorAll("#topbar button[data-v]").forEach(b=>b.onclick=()=>{view=b.dataset.v;render()});
+document.getElementById("prev").onclick=()=>{idx=(idx+samples.length-1)%samples.length;render()};
+document.getElementById("next").onclick=()=>{idx=(idx+1)%samples.length;render()};
+document.addEventListener("mouseup",()=>{
+const sel=getSelection();if(!sel||sel.isCollapsed)return;
+const body=document.getElementById("body");if(!body.contains(sel.anchorNode))return;
+pendingRange=sel.getRangeAt(0).cloneRange();
+const span=document.createElement("span");span.className="hl pending-highlight";span.style.background="#fcd34d";
+try{pendingRange.surroundContents(span)}catch(e){return}
+const r=span.getBoundingClientRect();const pop=document.getElementById("popover");
+pop.style.display="block";pop.style.top=(r.bottom+scrollY+6)+"px";pop.style.left=r.left+"px";
+document.getElementById("noteinput").value="";document.getElementById("noteinput").focus();
+});
+async function saveNote(){
+const q=document.querySelector(".pending-highlight")?.textContent||"";
+const v=document.getElementById("noteinput").value;if(!v)return;
+annotations.push({sample:samples[idx].id,quote:q,note:v});await jpost("/api/annotations",annotations);
+document.getElementById("popover").style.display="none";await load();toast("saved");
+}
+document.getElementById("noteinput").addEventListener("keydown",e=>{if(e.key==="Enter")saveNote()});
+document.getElementById("cancelpop").onclick=()=>{document.getElementById("popover").style.display="none";load()};
+setInterval(async()=>{const s=await jget("/api/samples");if(s.length!==samples.length){samples=s;toast("new samples arrived");render()}},8000);
+load();
+</script></body></html>

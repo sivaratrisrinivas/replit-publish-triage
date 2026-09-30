@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "style": "multi-symptom",
+    "evidence": "partial-config-mention",
+    "distractor": "none",
+    "fixtureId": "multi-drift"
+  },
+  "ticket": "Two problems since publish: the login page errors out, and sometimes the site doesn't load at all. Preview is fine. I think the start command might be different on published, and maybe some env vars didn't copy over — not sure, I didn't change anything myself.",
+  "diffs": [
+    {
+      "field": "deploymentType",
+      "preview": "autoscale",
+      "published": "reserved-vm"
+    },
+    {
+      "field": "startCommand",
+      "preview": "npm start",
+      "published": "node wrong-entry.js"
+    },
+    {
+      "field": "host",
+      "preview": "0.0.0.0",
+      "published": "127.0.0.1"
+    },
+    {
+      "field": "port",
+      "preview": 3000,
+      "published": 5000
+    },
+    {
+      "field": "envVarNames",
+      "preview": [
+        "DATABASE_URL",
+        "NODE_ENV",
+        "PUBLIC_URL"
+      ],
+      "published": [
+        "NODE_ENV",
+        "PUBLIC_URL"
+      ]
+    },
+    {
+      "field": "secretsPresentNames",
+      "preview": [
+        "PROD_LOGIN_KEY",
+        "SESSION_SECRET"
+      ],
+      "published": [
+        "SESSION_SECRET"
+      ]
+    }
+  ],
+  "extraction": {
+    "symptom": "Two problems since publish: the login page errors out, and sometimes the site doesn't load at all.",
+    "expected": null,
+    "actual": "publish: the login page errors out, and sometimes the site doesn't load",
+    "environment": "preview",
+    "timestamp": null,
+    "deploymentType": null,
+    "spans": {
+      "symptom": "Two problems since publish: the login page errors out, and sometimes the site doesn't load at all. Preview is fine. I think the start command might be different on published, and maybe some env vars d",
+      "expected": null,
+      "actual": "Two problems since publish: the login page errors out, and sometimes the site doesn't load at all. Preview is fine. I think the start comma",
+      "environment": "sometimes the site doesn't load at all. Preview is fine. I think the start command might be different on published, and maybe some env vars didn't copy over — n",
+      "timestamp": null,
+      "deploymentType": null
+    },
+    "conflicts": [],
+    "disposition": "needs-evidence",
+    "evidenceRequest": [
+      "timestamp",
+      "deploymentType",
+      "hostPortBinding"
+    ],
+    "provider": "deterministic"
+  },
+  "observations": [
+    {
+      "observationId": "s05-obs-published-login-probe",
+      "checkName": "published-login-probe",
+      "startedAt": "2026-09-30T19:07:58.123Z",
+      "finishedAt": "2026-09-30T19:07:58.124Z",
+      "outcome": "fail",
+      "detail": "published-login-probe: HTTP 500 at https://multi-published.example.invalid/login body=missing PROD_LOGIN_KEY",
+      "evidenceIds": [
+        "s05-obs-published-login-probe"
+      ]
+    },
+    {
+      "observationId": "s05-obs-config-start-port-audit",
+      "checkName": "config-start-port-audit",
+      "startedAt": "2026-09-30T19:07:58.124Z",
+      "finishedAt": "2026-09-30T19:07:58.124Z",
+      "outcome": "fail",
+      "detail": "startCommand differs: preview=npm start published=node wrong-entry.js; host differs: preview=0.0.0.0 published=127.0.0.1; port differs: preview=3000 published=5000; published binds loopback (127.0.0.1); unreachable from public URL",
+      "evidenceIds": [
+        "s05-obs-config-start-port-audit"
+      ]
+    },
+    {
+      "observationId": "s05-obs-published-http-reachable",
+      "checkName": "published-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.124Z",
+      "finishedAt": "2026-09-30T19:07:58.124Z",
+      "outcome": "fail",
+      "detail": "published-http-reachable: HTTP 500 at https://multi-published.example.invalid body=ok",
+      "evidenceIds": [
+        "s05-obs-published-http-reachable"
+      ]
+    }
+  ],
+  "diagnosis": {
+    "hypotheses": [
+      {
+        "hypothesisId": "s05-hyp-1",
+        "category": "missing-production-config",
+        "rank": 1,
+        "evidenceIds": [
+          "s05-ticket",
+          "s05-config-diff",
+          "s05-obs-published-login-probe"
+        ],
+        "disconfirmingTest": "Copy the named production value to published and re-run published-login-probe; a 200 disconfirms.",
+        "uncertainty": "Proves a config gap plus observed failure, not which deploy step dropped the value."
+      },
+      {
+        "hypothesisId": "s05-hyp-2",
+        "category": "published-startup-config",
+        "rank": 2,
+        "evidenceIds": [
+          "s05-ticket",
+          "s05-config-diff",
+          "s05-obs-config-start-port-audit"
+        ],
+        "disconfirmingTest": "Fix start command and bind 0.0.0.0 on the published port, then re-run published-http-reachable; reachable disconfirms.",
+        "uncertainty": "Startup drift is observed; the reason for the drift (manual edit vs deploy pipeline) is unknown."
+      }
+    ],
+    "abstention": null,
+    "conflicts": [],
+    "unknowns": [
+      "timestamp",
+      "deploymentType"
+    ],
+    "injectionFlagged": false,
+    "definitive": false,
+    "evidenceBar": {
+      "passed": true,
+      "reason": "ticket names a concrete symptom"
+    }
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "meta": {
+    "style": "non-native-terse",
+    "evidence": "no-evidence",
+    "distractor": "none",
+    "fixtureId": "bad-start-port"
+  },
+  "ticket": "sir preview good but publish no open. pls help urgent",
+  "diffs": [
+    {
+      "field": "deploymentType",
+      "preview": "autoscale",
+      "published": "reserved-vm"
+    },
+    {
+      "field": "startCommand",
+      "preview": "npm start",
+      "published": "node wrong-entry.js"
+    },
+    {
+      "field": "host",
+      "preview": "0.0.0.0",
+      "published": "127.0.0.1"
+    },
+    {
+      "field": "port",
+      "preview": 3000,
+      "published": 5000
+    }
+  ],
+  "extraction": {
+    "symptom": "sir preview good but publish no open.",
+    "expected": null,
+    "actual": null,
+    "environment": "preview",
+    "timestamp": null,
+    "deploymentType": null,
+    "spans": {
+      "symptom": "sir preview good but publish no open. pls help urgent",
+      "expected": null,
+      "actual": null,
+      "environment": "sir preview good but publish no open. pls help urgent",
+      "timestamp": null,
+      "deploymentType": null
+    },
+    "conflicts": [],
+    "disposition": "needs-evidence",
+    "evidenceRequest": [
+      "timestamp",
+      "deploymentType",
+      "logs",
+      "startCommand",
+      "hostPortBinding",
+      "prodConfigValues",
+      "actualBehavior"
+    ],
+    "provider": "deterministic"
+  },
+  "observations": [
+    {
+      "observationId": "s11-obs-preview-http-reachable",
+      "checkName": "preview-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.259Z",
+      "finishedAt": "2026-09-30T19:07:58.259Z",
+      "outcome": "pass",
+      "detail": "preview-http-reachable: HTTP 200 at https://badport-preview.example.invalid body=ok",
+      "evidenceIds": [
+        "s11-obs-preview-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s11-obs-published-http-reachable",
+      "checkName": "published-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.260Z",
+      "finishedAt": "2026-09-30T19:07:58.260Z",
+      "outcome": "fail",
+      "detail": "published-http-reachable: HTTP 503 at https://badport-published.example.invalid body=ok",
+      "evidenceIds": [
+        "s11-obs-published-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s11-obs-config-start-port-audit",
+      "checkName": "config-start-port-audit",
+      "startedAt": "2026-09-30T19:07:58.260Z",
+      "finishedAt": "2026-09-30T19:07:58.260Z",
+      "outcome": "fail",
+      "detail": "startCommand differs: preview=npm start published=node wrong-entry.js; host differs: preview=0.0.0.0 published=127.0.0.1; port differs: preview=3000 published=5000; published binds loopback (127.0.0.1); unreachable from public URL",
+      "evidenceIds": [
+        "s11-obs-config-start-port-audit"
+      ]
+    }
+  ],
+  "diagnosis": {
+    "hypotheses": [],
+    "abstention": "Insufficient customer-supplied support (no customer-supplied log, concrete symptom, or detailed report). Request evidence instead of guessing.",
+    "conflicts": [],
+    "unknowns": [
+      "timestamp",
+      "deploymentType"
+    ],
+    "injectionFlagged": false,
+    "definitive": false,
+    "evidenceBar": {
+      "passed": false,
+      "reason": "no customer-supplied log, concrete symptom, or detailed report"
+    }
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "style": "pasted-log-dump",
+    "evidence": "conflicting-logs",
+    "distractor": "unrelated-system-blame",
+    "fixtureId": "bad-start-port"
+  },
+  "ticket": "full logs below. published dead. maybe your database is down?? ---\n[preview] GET / 200\n[preview] POST /login 200\n[published] GET / TIMEOUT after 30s\n[published] GET / 200 ok (retry)\n[published] listening on 127.0.0.1:5000 via wrong-entry.js\n[db] slow query warning 4200ms\n--- is the db the problem?",
+  "diffs": [
+    {
+      "field": "deploymentType",
+      "preview": "autoscale",
+      "published": "reserved-vm"
+    },
+    {
+      "field": "startCommand",
+      "preview": "npm start",
+      "published": "node wrong-entry.js"
+    },
+    {
+      "field": "host",
+      "preview": "0.0.0.0",
+      "published": "127.0.0.1"
+    },
+    {
+      "field": "port",
+      "preview": 3000,
+      "published": 5000
+    }
+  ],
+  "extraction": {
+    "symptom": "full logs below.",
+    "expected": null,
+    "actual": "published] GET / TIMEOUT",
+    "environment": "published",
+    "timestamp": null,
+    "deploymentType": null,
+    "spans": {
+      "symptom": "full logs below. published dead. maybe your database is down?? ---\n[preview] GET / 200\n[preview] POST /login 200\n[published] GET / TIMEOUT after 30s\n[published] GET / 200 ok (retry)\n[published] listen",
+      "expected": null,
+      "actual": "w] GET / 200\n[preview] POST /login 200\n[published] GET / TIMEOUT after 30s\n[published] GET / 200 ok (retry)\n[published] listening on 127.0.0.1:5000 via wrong-en",
+      "environment": "full logs below. published dead. maybe your database is down?? ---\n[preview] GET / 200\n[preview] POST /login 200\n[published] GET / TIMEOU",
+      "timestamp": null,
+      "deploymentType": null
+    },
+    "conflicts": [
+      "log conflict: supplied logs report both success and failure for the tested route"
+    ],
+    "disposition": "conflicted",
+    "evidenceRequest": [
+      "clarify which deployment and timestamp each log belongs to",
+      "resend complete logs for the failing published deployment"
+    ],
+    "provider": "deterministic"
+  },
+  "observations": [
+    {
+      "observationId": "s18-obs-preview-http-reachable",
+      "checkName": "preview-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.351Z",
+      "finishedAt": "2026-09-30T19:07:58.351Z",
+      "outcome": "pass",
+      "detail": "preview-http-reachable: HTTP 200 at https://badport-preview.example.invalid body=ok",
+      "evidenceIds": [
+        "s18-obs-preview-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s18-obs-published-http-reachable",
+      "checkName": "published-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.351Z",
+      "finishedAt": "2026-09-30T19:07:58.351Z",
+      "outcome": "fail",
+      "detail": "published-http-reachable: HTTP 503 at https://badport-published.example.invalid body=ok",
+      "evidenceIds": [
+        "s18-obs-published-http-reachable"
+      ]
+    },
+    {
+      "observationId": "s18-obs-config-start-port-audit",
+      "checkName": "config-start-port-audit",
+      "startedAt": "2026-09-30T19:07:58.351Z",
+      "finishedAt": "2026-09-30T19:07:58.352Z",
+      "outcome": "fail",
+      "detail": "startCommand differs: preview=npm start published=node wrong-entry.js; host differs: preview=0.0.0.0 published=127.0.0.1; port differs: preview=3000 published=5000; published binds loopback (127.0.0.1); unreachable from public URL",
+      "evidenceIds": [
+        "s18-obs-config-start-port-audit"
+      ]
+    }
+  ],
+  "diagnosis": {
+    "hypotheses": [],
+    "abstention": "Unresolved: log conflict: supplied logs report both success and failure for the tested route. No diagnosis until conflicting evidence is clarified.",
+    "conflicts": [
+      "log conflict: supplied logs report both success and failure for the tested route"
+    ],
+    "unknowns": [
+      "timestamp",
+      "deploymentType"
+    ],
+    "injectionFlagged": false,
+    "definitive": false,
+    "evidenceBar": {
+      "passed": true,
+      "reason": "no ranked diagnosis proposed"
+    }
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "style": "precise-technical",
+    "evidence": "conflicting-logs",
+    "distractor": "none",
+    "fixtureId": "multi-drift"
+  },
+  "ticket": "Preview healthy. Published shows two conflicting signals: POST /login 500s mentioning a missing prod key, but also occasional 200s on the same route; additionally the published start command, host, and port all differ from preview. Unsure which issue is primary.",
+  "diffs": [
+    {
+      "field": "deploymentType",
+      "preview": "autoscale",
+      "published": "reserved-vm"
+    },
+    {
+      "field": "startCommand",
+      "preview": "npm start",
+      "published": "node wrong-entry.js"
+    },
+    {
+      "field": "host",
+      "preview": "0.0.0.0",
+      "published": "127.0.0.1"
+    },
+    {
+      "field": "port",
+      "preview": 3000,
+      "published": 5000
+    },
+    {
+      "field": "envVarNames",
+      "preview": [
+        "DATABASE_URL",
+        "NODE_ENV",
+        "PUBLIC_URL"
+      ],
+      "published": [
+        "NODE_ENV",
+        "PUBLIC_URL"
+      ]
+    },
+    {
+      "field": "secretsPresentNames",
+      "preview": [
+        "PROD_LOGIN_KEY",
+        "SESSION_SECRET"
+      ],
+      "published": [
+        "SESSION_SECRET"
+      ]
+    }
+  ],
+  "extraction": {
+    "symptom": "Preview healthy.",
+    "expected": null,
+    "actual": "Published shows two conflicting signals: POST /login 500",
+    "environment": "preview",
+    "timestamp": null,
+    "deploymentType": null,
+    "spans": {
+      "symptom": "Preview healthy. Published shows two conflicting signals: POST /login 500s mentioning a missing prod key, but also occasional 200s on the same route; additionally the published start command, host, an",
+      "expected": null,
+      "actual": "Preview healthy. Published shows two conflicting signals: POST /login 500s mentioning a missing prod key, but also occasional 200s on the",
+      "environment": "Preview healthy. Published shows two conflicting signals: POST /login 500s mentioning a missing prod key, but also occas",
+      "timestamp": null,
+      "deploymentType": null
+    },
+    "conflicts": [
+      "log conflict: supplied logs report both success and failure for the tested route"
+    ],
+    "disposition": "conflicted",
+    "evidenceRequest": [
+      "clarify which deployment and timestamp each log belongs to",
+      "resend complete logs for the failing published deployment"
+    ],
+    "provider": "deterministic"
+  },
+  "observations": [
+    {
+      "observationId": "s13-obs-published-login-probe",
+      "checkName": "published-login-probe",
+      "startedAt": "2026-09-30T19:07:58.288Z",
+      "finishedAt": "2026-09-30T19:07:58.288Z",
+      "outcome": "fail",
+      "detail": "published-login-probe: HTTP 500 at https://multi-published.example.invalid/login body=missing PROD_LOGIN_KEY",
+      "evidenceIds": [
+        "s13-obs-published-login-probe"
+      ]
+    },
+    {
+      "observationId": "s13-obs-config-start-port-audit",
+      "checkName": "config-start-port-audit",
+      "startedAt": "2026-09-30T19:07:58.288Z",
+      "finishedAt": "2026-09-30T19:07:58.288Z",
+      "outcome": "fail",
+      "detail": "startCommand differs: preview=npm start published=node wrong-entry.js; host differs: preview=0.0.0.0 published=127.0.0.1; port differs: preview=3000 published=5000; published binds loopback (127.0.0.1); unreachable from public URL",
+      "evidenceIds": [
+        "s13-obs-config-start-port-audit"
+      ]
+    },
+    {
+      "observationId": "s13-obs-published-http-reachable",
+      "checkName": "published-http-reachable",
+      "startedAt": "2026-09-30T19:07:58.288Z",
+      "finishedAt": "2026-09-30T19:07:58.288Z",
+      "outcome": "fail",
+      "detail": "published-http-reachable: HTTP 500 at https://multi-published.example.invalid body=ok",
+      "evidenceIds": [
+        "s13-obs-published-http-reachable"
+      ]
+    }
+  ],
+  "diagnosis": {
+    "hypotheses": [],
+    "abstention": "Unresolved: log conflict: supplied logs report both success and failure for the tested route. No diagnosis until conflicting evidence is clarified.",
+    "conflicts": [
+      "log conflict: supplied logs report both success and failure for the tested route"
+    ],
+    "unknowns": [
+      "timestamp",
+      "deploymentType"
+    ],
+    "injectionFlagged": false,
+    "definitive": false,
+    "evidenceBar": {
+      "passed": true,
+      "reason": "no ranked diagnosis proposed"
+    }
+  }
+}

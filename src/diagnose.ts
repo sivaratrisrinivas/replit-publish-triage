@@ -37,13 +37,38 @@ export interface DiagnoseOutput {
   unknowns: string[];
   injectionFlagged: boolean;
   definitive: boolean;
+  evidenceBar: { passed: boolean; reason: string };
 }
 
 const INJECTION_PATTERN =
   /ignore\s+(previous|prior|all)\s+instructions|add\s+tool|run\s+(command|shell)|approve\s+without\s+review|exfiltrat|send\s+.*(secret|password|token)\s+to\b/i;
 
+// Heuristic: ticket text naming a concrete observable (status code, route behavior,
+// binding value, recurrence language) counts as customer-supplied support.
+// Keyword-driven, not semantic; see ticket 08.
+const CONCRETE_SYMPTOM_PATTERN =
+  /500|502|503|404|40[13]|timed?\s*out|200\s*ok|login loop|\bloop\b|redirect|unreachable|never comes up|is down|won't load|doesn't load|not loading|listening on|wrong-entry|\bonce\b|just now|intermittent|flaky|sometimes|occasional/i;
+
+const HEDGE_PATTERN = /\?\?+|\bmaybe\b|\bi think\b|not sure|\bpossibly\b|\bmight\b|could be|\bperhaps\b/i;
+
 function hasField(diffs: ConfigDifference[], field: string): boolean {
   return diffs.some((d) => d.field === field);
+}
+
+function evidenceBarCheck(input: {
+  ticketText: string;
+  currentLogCount: number;
+  expected: string | null;
+  actual: string | null;
+}): { passed: boolean; reason: string } {
+  if (input.currentLogCount > 0) return { passed: true, reason: "customer-supplied log for the current deployment" };
+  if (CONCRETE_SYMPTOM_PATTERN.test(input.ticketText)) {
+    return { passed: true, reason: "ticket names a concrete symptom" };
+  }
+  const substantial = input.ticketText.length >= 100 && !HEDGE_PATTERN.test(input.ticketText) && (input.expected !== null || input.actual !== null);
+  if (substantial) return { passed: true, reason: "detailed unhedged report" };
+  if (input.ticketText.length >= 200) return { passed: true, reason: "long detailed report" };
+  return { passed: false, reason: "no customer-supplied log, concrete symptom, or detailed report" };
 }
 
 function obsByCheck(observations: Observation[], name: string): Observation | undefined {
@@ -148,6 +173,15 @@ export function diagnose(input: DiagnoseInput): DiagnoseOutput {
   const healthyPass =
     input.diffs.length === 0 ||
     (loginObs?.outcome === "pass" && !hasField(input.diffs, "startCommand") && auditObs?.outcome !== "fail");
+  const bar =
+    input.extraction.disposition === "conflicted" || candidates.length === 0
+      ? { passed: true, reason: "no ranked diagnosis proposed" }
+      : evidenceBarCheck({
+          ticketText,
+          currentLogCount: currentLogs.length,
+          expected: input.extraction.expected,
+          actual: input.extraction.actual,
+        });
   let abstention: string | null = null;
   if (healthyPass && candidates.length === 0) {
     hypotheses = [];
@@ -155,6 +189,9 @@ export function diagnose(input: DiagnoseInput): DiagnoseOutput {
       "No supplied or observed evidence supports a publishing defect; not reproduced. Ask for failing-route logs before diagnosing.";
   } else if (input.extraction.disposition === "conflicted") {
     abstention = `Unresolved: ${conflicts.join("; ")}. No diagnosis until conflicting evidence is clarified.`;
+    hypotheses = [];
+  } else if (!bar.passed) {
+    abstention = `Insufficient customer-supplied support (${bar.reason}). Request evidence instead of guessing.`;
     hypotheses = [];
   } else if (input.extraction.disposition === "needs-evidence" && candidates.length === 0) {
     abstention = `Insufficient evidence: ${input.extraction.evidenceRequest.join(", ")}. Request evidence instead of guessing.`;
@@ -167,5 +204,5 @@ export function diagnose(input: DiagnoseInput): DiagnoseOutput {
     conflicts.length === 0 &&
     (loginObs?.outcome === "fail" || auditObs?.outcome === "fail");
 
-  return { hypotheses, abstention, conflicts, unknowns, injectionFlagged, definitive };
+  return { hypotheses, abstention, conflicts, unknowns, injectionFlagged, definitive, evidenceBar: bar };
 }
