@@ -40,12 +40,17 @@ type LlmFacts = z.infer<typeof LlmFactsSchema>;
 
 const EXTRACT_SYSTEM = `Extract structured facts from a synthetic support ticket about a published app failure. Reply with JSON only, no other text. Fields (string or null, null when absent, never infer production state from Preview state): symptom, expected, actual, environment, timestamp, deploymentType.`;
 
+export function resolveProvider(explicit?: "gemini" | "openrouter", explicitKey?: string): "gemini" | "openrouter" {
+  // Explicit provider always wins. An explicitly passed key keeps the legacy
+  // OpenRouter contract. Otherwise the environment decides, preferring Gemini.
+  if (explicit) return explicit;
+  if (explicitKey) return "openrouter";
+  if (process.env.GEMINI_API_KEY) return "gemini";
+  return "openrouter";
+}
 async function llmFacts(ticketText: string, opts: NonNullable<ExtractOptions["llm"]>): Promise<LlmFacts | null> {
   try {
-    // Explicit key keeps the legacy OpenRouter contract; otherwise the
-    // environment decides, preferring Gemini when its key is present.
-    const provider =
-      opts.provider ?? (opts.apiKey ? "openrouter" : process.env.GEMINI_API_KEY ? "gemini" : "openrouter");
+    const provider = resolveProvider(opts.provider, opts.apiKey);
     let text: string;
     if (provider === "gemini") {
       const res = await completeGemini(EXTRACT_SYSTEM, ticketText.slice(0, 2000), {
@@ -180,7 +185,7 @@ export async function extractIncidentAsync(input: ExtractInput, opts: ExtractOpt
   const logs = (input.logs ?? []).map((l) => redactText(l));
   const enabled = process.env.PUBLISH_TRIAGE_LLM === "1" && (opts.llm?.apiKey || process.env.OPENROUTER_API_KEY || process.env.GEMINI_API_KEY);
   if (enabled) {
-    const provider = opts.llm?.provider ?? (process.env.GEMINI_API_KEY ? "gemini" : "openrouter");
+    const provider = resolveProvider(opts.llm?.provider, opts.llm?.apiKey);
     const apiKey =
       opts.llm?.apiKey ?? (provider === "gemini" ? process.env.GEMINI_API_KEY : process.env.OPENROUTER_API_KEY);
     const facts = await llmFacts(ticketText, {
