@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeRoi, ROI_LOW, ROI_HIGH } from "../src/roi.js";
+import { computeRoi, ROI_LOW, ROI_HIGH, wilsonLower95 } from "../src/roi.js";
 import { loadEvalCases } from "../src/eval.js";
 
 describe("roi", () => {
@@ -11,6 +11,13 @@ describe("roi", () => {
     const high = computeRoi(ROI_HIGH).monthlyValue;
     expect(high).toBeGreaterThan(33000);
     expect(high).toBeLessThan(33600);
+  });
+
+  it("wilson lower bound is conservative on small suites", () => {
+    expect(wilsonLower95(12, 12)).toBeLessThan(1);
+    expect(wilsonLower95(12, 12)).toBeGreaterThan(0.7);
+    expect(wilsonLower95(0, 0)).toBe(0);
+    expect(wilsonLower95(24, 24)).toBeGreaterThan(wilsonLower95(12, 12));
   });
 });
 

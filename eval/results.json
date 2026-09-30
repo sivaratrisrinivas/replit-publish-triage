@@ -14,7 +14,7 @@
     "total": 10,
     "passed": 8
   },
-  "totalMs": 527,
+  "totalMs": 566,
   "byCase": [
     {
       "id": "d01",
@@ -24,7 +24,7 @@
       "failures": [],
       "topCategory": "missing-production-config",
       "disposition": "needs-evidence",
-      "durationMs": 32
+      "durationMs": 45
     },
     {
       "id": "d02",
@@ -34,7 +34,7 @@
       "failures": [],
       "topCategory": "published-startup-config",
       "disposition": "needs-evidence",
-      "durationMs": 15
+      "durationMs": 18
     },
     {
       "id": "d03",
@@ -44,7 +44,7 @@
       "failures": [],
       "topCategory": null,
       "disposition": "needs-evidence",
-      "durationMs": 13
+      "durationMs": 11
     },
     {
       "id": "d04",
@@ -54,7 +54,7 @@
       "failures": [],
       "topCategory": null,
       "disposition": "needs-evidence",
-      "durationMs": 16
+      "durationMs": 13
     },
     {
       "id": "d05",
@@ -64,7 +64,7 @@
       "failures": [],
       "topCategory": null,
       "disposition": "conflicted",
-      "durationMs": 15
+      "durationMs": 14
     },
     {
       "id": "d06",
@@ -74,7 +74,7 @@
       "failures": [],
       "topCategory": "missing-production-config",
       "disposition": "needs-evidence",
-      "durationMs": 13
+      "durationMs": 15
     },
     {
       "id": "h01",
@@ -84,7 +84,7 @@
       "failures": [],
       "topCategory": "missing-production-config",
       "disposition": "needs-evidence",
-      "durationMs": 15
+      "durationMs": 14
     },
     {
       "id": "h02",
@@ -94,7 +94,7 @@
       "failures": [],
       "topCategory": "published-startup-config",
       "disposition": "needs-evidence",
-      "durationMs": 12
+      "durationMs": 9
     },
     {
       "id": "h03",
@@ -104,7 +104,7 @@
       "failures": [],
       "topCategory": "published-startup-config",
       "disposition": "needs-evidence",
-      "durationMs": 11
+      "durationMs": 12
     },
     {
       "id": "h04",
@@ -114,7 +114,7 @@
       "failures": [],
       "topCategory": null,
       "disposition": "needs-evidence",
-      "durationMs": 10
+      "durationMs": 15
     },
     {
       "id": "h05",
@@ -124,7 +124,7 @@
       "failures": [],
       "topCategory": "intermittent-unverified",
       "disposition": "needs-evidence",
-      "durationMs": 10
+      "durationMs": 16
     },
     {
       "id": "h06",
@@ -134,7 +134,7 @@
       "failures": [],
       "topCategory": null,
       "disposition": "needs-evidence",
-      "durationMs": 9
+      "durationMs": 16
     },
     {
       "id": "h07",
@@ -144,7 +144,7 @@
       "failures": [],
       "topCategory": null,
       "disposition": "conflicted",
-      "durationMs": 10
+      "durationMs": 17
     },
     {
       "id": "h08",
@@ -154,7 +154,7 @@
       "failures": [],
       "topCategory": "missing-production-config",
       "disposition": "needs-evidence",
-      "durationMs": 9
+      "durationMs": 12
     },
     {
       "id": "h09",
@@ -164,7 +164,7 @@
       "failures": [],
       "topCategory": "missing-production-config",
       "disposition": "needs-evidence",
-      "durationMs": 10
+      "durationMs": 9
     },
     {
       "id": "h10",
@@ -184,7 +184,7 @@
       "failures": [],
       "topCategory": "intermittent-unverified",
       "disposition": "needs-evidence",
-      "durationMs": 11
+      "durationMs": 10
     },
     {
       "id": "h12",
@@ -204,7 +204,7 @@
       "failures": [],
       "topCategory": null,
       "disposition": "needs-evidence",
-      "durationMs": 19
+      "durationMs": 16
     },
     {
       "id": "h14",
@@ -224,7 +224,7 @@
       "failures": [],
       "topCategory": null,
       "disposition": "needs-evidence",
-      "durationMs": 11
+      "durationMs": 12
     },
     {
       "id": "h16",
@@ -234,7 +234,7 @@
       "failures": [],
       "topCategory": null,
       "disposition": "needs-evidence",
-      "durationMs": 10
+      "durationMs": 9
     },
     {
       "id": "h17",
@@ -244,7 +244,7 @@
       "failures": [],
       "topCategory": "missing-production-config",
       "disposition": "needs-evidence",
-      "durationMs": 25
+      "durationMs": 27
     },
     {
       "id": "h18",
@@ -254,7 +254,7 @@
       "failures": [],
       "topCategory": "missing-production-config",
       "disposition": "needs-evidence",
-      "durationMs": 12
+      "durationMs": 17
     }
   ]
 }
