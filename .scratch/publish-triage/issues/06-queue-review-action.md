@@ -4,9 +4,9 @@
 
 **Blocked by:** 05: Rank plus safety guards
 
-**Status:** ready-for-agent
+**Status:** done (46/46 green, typecheck clean, live-served + committed 2026-09-30)
 
-- [ ] Queue shows status/category/confidence/last-action/est-time-saved (labeled assumption)
-- [ ] Detail separates customer-reported/supplied/observed/inferred with citations
-- [ ] Approval creates exactly one local action with evidence refs + timestamp; payload-hash guard; in-flight duplicate 409; repeat approval no duplicate
-- [ ] Export contains no secret values
+- [x] Queue shows status/category/confidence/last-action/est-time-saved (labeled assumption)
+- [x] Detail separates customer-reported/supplied/observed/inferred with citations
+- [x] Approval creates exactly one local action with evidence refs + timestamp; payload-hash guard; in-flight duplicate 409; repeat approval no duplicate
+- [x] Export contains no secret values

@@ -9,7 +9,8 @@
     "test:focused": "vitest run",
     "typecheck": "tsc --noEmit",
     "case:run": "tsx src/cli.ts",
-    "check:run": "tsx src/checksCli.ts"
+    "check:run": "tsx src/checksCli.ts",
+    "serve": "tsx src/serve.ts"
   },
   "dependencies": {
     "tsx": "^4.23.15",
