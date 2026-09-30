@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "tsx src/serve.ts",
     "build": "tsc",
     "test": "vitest run",
-    "test:focused": "vitest run",
     "typecheck": "tsc --noEmit",
     "case:run": "tsx src/cli.ts",
     "check:run": "tsx src/checksCli.ts",

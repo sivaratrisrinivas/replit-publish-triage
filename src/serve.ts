@@ -2,7 +2,9 @@ import { readFile } from "node:fs/promises";
 import { createApp } from "./server.js";
 import { runCase } from "./runCase.js";
 
+// Render and most PaaS inject PORT and expect 0.0.0.0, not the loopback default.
 const port = Number(process.env.PORT ?? 3000);
+const host = process.env.HOST ?? "0.0.0.0";
 const app = createApp({ dataRoot: ".data" });
 
 try {
@@ -21,4 +23,4 @@ try {
   /* serve whatever is stored */
 }
 
-app.listen(port, () => console.log(`Publish Triage (SYNTHETIC) at http://localhost:${port}`));
+app.listen(port, host, () => console.log(`Publish Triage (SYNTHETIC) at http://${host}:${port}`));

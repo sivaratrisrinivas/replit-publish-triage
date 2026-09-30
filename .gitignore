@@ -3,6 +3,8 @@ dist/
 .data/
 .data-test-*/
 *.log
+.env
+.env.*
 # Generated / one-off artifacts: regenerate via scripts, do not commit.
 eval/results.json
 synth/traces/
