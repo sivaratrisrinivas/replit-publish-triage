@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "fixtureId": "healthy"
+  },
+  "ticket": "The app is deploying but it is not pushing all the new changes, and it doesn't give errors. I hard refresh, I use multiple browsers, one PC and one Mac, and it is very frustrating. Preview shows everything fine.",
+  "diffs": [],
+  "extraction": {
+    "symptom": "The app is deploying but it is not pushing all the new changes, and it doesn't give errors.",
+    "expected": null,
+    "actual": null,
+    "environment": "preview",
+    "timestamp": null,
+    "deploymentType": null,
+    "spans": {
+      "symptom": "The app is deploying but it is not pushing all the new changes, and it doesn't give errors. I hard refresh, I use multiple browsers, one PC and one Mac, and it is very frustrating. Preview shows every",
+      "expected": null,
+      "actual": null,
+      "environment": "nd one Mac, and it is very frustrating. Preview shows everything fine.",
+      "timestamp": null,
+      "deploymentType": null
+    },
+    "conflicts": [],
+    "disposition": "needs-evidence",
+    "evidenceRequest": [
+      "timestamp",
+      "deploymentType",
+      "logs",
+      "startCommand",
+      "hostPortBinding",
+      "prodConfigValues",
+      "actualBehavior"
+    ],
+    "provider": "deterministic"
+  },
+  "observations": [
+    {
+      "observationId": "c01-obs-preview-http-reachable",
+      "checkName": "preview-http-reachable",
+      "startedAt": "2026-09-30T20:03:57.833Z",
+      "finishedAt": "2026-09-30T20:03:57.835Z",
+      "outcome": "pass",
+      "detail": "preview-http-reachable: HTTP 200 at https://healthy-preview.example.invalid body=ok",
+      "evidenceIds": [
+        "c01-obs-preview-http-reachable"
+      ]
+    },
+    {
+      "observationId": "c01-obs-published-http-reachable",
+      "checkName": "published-http-reachable",
+      "startedAt": "2026-09-30T20:03:57.836Z",
+      "finishedAt": "2026-09-30T20:03:57.836Z",
+      "outcome": "pass",
+      "detail": "published-http-reachable: HTTP 200 at https://healthy-published.example.invalid body=ok",
+      "evidenceIds": [
+        "c01-obs-published-http-reachable"
+      ]
+    },
+    {
+      "observationId": "c01-obs-published-login-probe",
+      "checkName": "published-login-probe",
+      "startedAt": "2026-09-30T20:03:57.836Z",
+      "finishedAt": "2026-09-30T20:03:57.836Z",
+      "outcome": "pass",
+      "detail": "published-login-probe: HTTP 200 at https://healthy-published.example.invalid/login body=ok",
+      "evidenceIds": [
+        "c01-obs-published-login-probe"
+      ]
+    }
+  ],
+  "diagnosis": {
+    "hypotheses": [],
+    "abstention": "No supplied or observed evidence supports a publishing defect; not reproduced. Ask for failing-route logs before diagnosing.",
+    "conflicts": [],
+    "unknowns": [
+      "timestamp",
+      "deploymentType"
+    ],
+    "injectionFlagged": false,
+    "definitive": false,
+    "evidenceBar": {
+      "passed": true,
+      "reason": "no ranked diagnosis proposed"
+    }
+  }
+}

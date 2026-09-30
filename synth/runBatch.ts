@@ -16,8 +16,10 @@ interface BatchItem {
   allowedChecks: string[];
 }
 
-const batch = JSON.parse(await readFile("synth/batch1.json", "utf8")) as BatchItem[];
-await mkdir("synth/traces", { recursive: true });
+const batchPath = process.argv[2] ?? "synth/batch1.json";
+const outDir = process.argv[3] ?? "synth/traces";
+const batch = JSON.parse(await readFile(batchPath, "utf8")) as BatchItem[];
+await mkdir(outDir, { recursive: true });
 
 const fakeFetch = (probe: BatchItem["probe"]): FetchImpl => async (url: string) => {
   if (/\/login/.test(url)) {
@@ -67,7 +69,7 @@ for (const item of batch) {
     docVersion: "docs-2026-09-30",
   });
   await writeFile(
-    `synth/traces/${item.id}.json`,
+    `${outDir}/${item.id}.json`,
     JSON.stringify({ meta: { style: item.style, evidence: item.evidence, distractor: item.distractor, fixtureId: item.fixtureId }, ticket: item.ticket, diffs: ran.diffs, extraction: ran.extraction, observations, diagnosis }, null, 2),
   );
   await rm(dataRoot, { recursive: true, force: true });

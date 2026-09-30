@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { normalizeTicket, detectMissingEvidence } from "./normalize.js";
 import { redactText } from "./redact.js";
+import { completeChat } from "./llm.js";
 
 export const ExtractionSchema = z.object({
   symptom: z.string().nullable(),
@@ -23,7 +24,37 @@ export interface ExtractInput {
 }
 
 export interface ExtractOptions {
-  llm?: { apiKey?: string };
+  llm?: { apiKey?: string; model?: string; fetchImpl?: typeof fetch };
+}
+
+const LlmFactsSchema = z.object({
+  symptom: z.string().nullable(),
+  expected: z.string().nullable(),
+  actual: z.string().nullable(),
+  environment: z.string().nullable(),
+  timestamp: z.string().nullable(),
+  deploymentType: z.string().nullable(),
+});
+type LlmFacts = z.infer<typeof LlmFactsSchema>;
+
+const EXTRACT_SYSTEM = `Extract structured facts from a synthetic support ticket about a published app failure. Reply with JSON only, no other text. Fields (string or null, null when absent, never infer production state from Preview state): symptom, expected, actual, environment, timestamp, deploymentType.`;
+
+async function llmFacts(ticketText: string, opts: NonNullable<ExtractOptions["llm"]>): Promise<LlmFacts | null> {
+  try {
+    const res = await completeChat(
+      [
+        { role: "system", content: EXTRACT_SYSTEM },
+        { role: "user", content: ticketText.slice(0, 2000) },
+      ],
+      { apiKey: opts.apiKey, model: opts.model, fetchImpl: opts.fetchImpl },
+    );
+    const start = res.text.indexOf("{");
+    const end = res.text.lastIndexOf("}");
+    if (start === -1 || end === -1) return null;
+    return LlmFactsSchema.parse(JSON.parse(res.text.slice(start, end + 1)));
+  } catch {
+    return null;
+  }
 }
 
 function spanFor(haystack: string, needle: string | null): string | null {
@@ -72,7 +103,15 @@ export function extractIncident(input: ExtractInput, opts: ExtractOptions = {}):
   const ticketText = redactText(input.ticketText ?? "");
   const logs = (input.logs ?? []).map((l) => redactText(l));
 
-  const facts = normalizeTicket(ticketText);
+  return assemble(ticketText, logs, normalizeTicket(ticketText), "deterministic");
+}
+
+function assemble(
+  ticketText: string,
+  logs: string[],
+  facts: ReturnType<typeof normalizeTicket>,
+  provider: Extraction["provider"],
+): Extraction {
   const missing = detectMissingEvidence(ticketText, facts);
   const conflicts = detectConflicts(ticketText, logs);
 
@@ -100,11 +139,6 @@ export function extractIncident(input: ExtractInput, opts: ExtractOptions = {}):
         ]
       : missing;
 
-  const provider: Extraction["provider"] =
-    opts.llm && typeof opts.llm.apiKey === "string" && opts.llm.apiKey.length > 0
-      ? "llm"
-      : "deterministic";
-
   const out: Extraction = {
     symptom: facts.symptom,
     expected: facts.expected,
@@ -119,4 +153,22 @@ export function extractIncident(input: ExtractInput, opts: ExtractOptions = {}):
     provider,
   };
   return ExtractionSchema.parse(out);
+}
+
+// Async path: tries the model for fact extraction when explicitly enabled,
+// otherwise identical to the sync path. Conflict detection, disposition, and
+// spans stay deterministic either way; any model failure falls back silently.
+export async function extractIncidentAsync(input: ExtractInput, opts: ExtractOptions = {}): Promise<Extraction> {
+  const ticketText = redactText(input.ticketText ?? "");
+  const logs = (input.logs ?? []).map((l) => redactText(l));
+  const enabled = process.env.PUBLISH_TRIAGE_LLM === "1" && (opts.llm?.apiKey || process.env.OPENROUTER_API_KEY);
+  if (enabled) {
+    const facts = await llmFacts(ticketText, {
+      apiKey: opts.llm?.apiKey ?? process.env.OPENROUTER_API_KEY,
+      model: opts.llm?.model,
+      fetchImpl: opts.llm?.fetchImpl,
+    });
+    if (facts) return assemble(ticketText, logs, facts, "llm");
+  }
+  return assemble(ticketText, logs, normalizeTicket(ticketText), "deterministic");
 }

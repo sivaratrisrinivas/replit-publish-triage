@@ -1,0 +1,76 @@
+[
+  {
+    "id": "c01",
+    "source": "https://replit.discourse.group/t/why-the-deplyment-is-not-equal-to-the-preview/6663",
+    "note": "Adapted real language: deploy not pushing changes, no errors, multiple browsers tried. Stale-deploy class; no fixture covers it, paired with healthy.",
+    "fixtureId": "healthy",
+    "ticket": "The app is deploying but it is not pushing all the new changes, and it doesn't give errors. I hard refresh, I use multiple browsers, one PC and one Mac, and it is very frustrating. Preview shows everything fine.",
+    "probe": { "preview": 200, "published": 200, "login": 200 },
+    "allowedChecks": ["preview-http-reachable", "published-http-reachable", "published-login-probe"]
+  },
+  {
+    "id": "c02",
+    "source": "https://replit.discourse.group/t/why-the-deplyment-is-not-equal-to-the-preview/6663 (dev/prod database split discussion)",
+    "note": "Dev/prod database split: dev works, production database empty.",
+    "fixtureId": "missing-prod-config",
+    "ticket": "App works in dev mode. In the deployed version the database looks empty, as if it uses a different database. Does the deployment have the dev and prod databases split?",
+    "logs": [{ "evidenceId": "c02-log-1", "deployment": "current", "content": "SYNTHETIC published log: DATABASE_URL returned empty result set" }],
+    "probe": { "preview": 200, "published": 500, "login": 500 },
+    "allowedChecks": ["preview-http-reachable", "published-http-reachable", "published-login-probe"]
+  },
+  {
+    "id": "c03",
+    "source": "https://replit.discourse.group/t/live-app-deployment-down-for-weeks-re-dplying-keeps-failing-help/4429 (topic listing)",
+    "note": "Platform-side outage class: weeks-long deploy failures. Must not blame app config; expect abstention.",
+    "fixtureId": "healthy",
+    "ticket": "Live app deployment down for weeks, re-deploying keeps failing. Preview works fine. Something is wrong in the process, it is not a normal publish.",
+    "probe": { "preview": 200, "published": 200, "login": 200 },
+    "allowedChecks": ["preview-http-reachable", "published-http-reachable", "published-login-probe"]
+  },
+  {
+    "id": "c04",
+    "source": "https://heyopsis.com/blog/bugs-in-replit-apps (build/run mismatch)",
+    "note": "Preview runs dev, deploy runs build then start and they disagree; blank page / module-not-found.",
+    "fixtureId": "bad-start-port",
+    "ticket": "Preview works. The deployed version shows a blank page. The preview uses the dev command while the deploy uses build then start, and the two don't agree. It works in preview and fails in production with a cryptic error.",
+    "probe": { "preview": 200, "published": 503 },
+    "allowedChecks": ["preview-http-reachable", "published-http-reachable", "config-start-port-audit"]
+  },
+  {
+    "id": "c05",
+    "source": "https://heyopsis.com/blog/bugs-in-replit-apps (partial env mismatch)",
+    "note": "Public key present but secret missing; downstream failure, never says missing env var.",
+    "fixtureId": "missing-prod-config",
+    "ticket": "Preview fine. In production, requests to our API go out with no auth header and the login callback lands on the string undefined. The public key is set, something secret seems missing only in the deployed environment.",
+    "logs": [{ "evidenceId": "c05-log-1", "deployment": "current", "content": "SYNTHETIC published log: POST /login 500 missing PROD_LOGIN_KEY" }],
+    "probe": { "preview": 200, "published": 500, "login": 500 },
+    "allowedChecks": ["preview-http-reachable", "published-http-reachable", "published-login-probe"]
+  },
+  {
+    "id": "c06",
+    "source": "https://heyopsis.com/blog/bugs-in-replit-apps (auth on the live URL)",
+    "note": "OAuth callback / cookie domain tied to preview host; loop on live URL.",
+    "fixtureId": "healthy",
+    "ticket": "Login works in preview but on the live URL users get bounced back to the preview address in a loop. The OAuth callback seems registered for the workspace, not production.",
+    "probe": { "preview": 200, "published": 302, "login": 200 },
+    "allowedChecks": ["preview-http-reachable", "published-http-reachable", "published-redirect-follow"]
+  },
+  {
+    "id": "c07",
+    "source": "https://heyopsis.com/blog/bugs-in-replit-apps (database connection limits)",
+    "note": "Fine in preview with one user; too many connections under real traffic. Single probe cannot reproduce load.",
+    "fixtureId": "healthy",
+    "ticket": "Preview works with just me. Under real traffic, new connections start failing with too many connections and requests time out.",
+    "probe": { "preview": 200, "published": 200, "login": 500 },
+    "allowedChecks": ["preview-http-reachable", "published-http-reachable", "published-login-probe"]
+  },
+  {
+    "id": "c08",
+    "source": "https://heyopsis.com/blog/bugs-in-replit-apps (nix and dependency drift)",
+    "note": "Native module compiled against local toolchain; missing executable only on deploy.",
+    "fixtureId": "healthy",
+    "ticket": "App runs for me in preview and fails for everyone else with an error about a missing image-processing binary that my environment silently provided.",
+    "probe": { "preview": 200, "published": 500, "login": 200 },
+    "allowedChecks": ["preview-http-reachable", "published-http-reachable", "published-login-probe"]
+  }
+]

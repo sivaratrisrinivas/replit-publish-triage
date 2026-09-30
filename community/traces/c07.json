@@ -1,0 +1,95 @@
+{
+  "meta": {
+    "fixtureId": "healthy"
+  },
+  "ticket": "Preview works with just me. Under real traffic, new connections start failing with too many connections and requests time out.",
+  "diffs": [],
+  "extraction": {
+    "symptom": "Preview works with just me.",
+    "expected": "preview works",
+    "actual": null,
+    "environment": "preview",
+    "timestamp": null,
+    "deploymentType": null,
+    "spans": {
+      "symptom": "Preview works with just me. Under real traffic, new connections start failing with too many connections and requests time out.",
+      "expected": "Preview works with just me. Under real traffic, new connections start failing with too many connections and requests tim",
+      "actual": null,
+      "environment": "Preview works with just me. Under real traffic, new connections start failing with too many connections and requests tim",
+      "timestamp": null,
+      "deploymentType": null
+    },
+    "conflicts": [],
+    "disposition": "needs-evidence",
+    "evidenceRequest": [
+      "timestamp",
+      "deploymentType",
+      "logs",
+      "hostPortBinding",
+      "prodConfigValues",
+      "actualBehavior"
+    ],
+    "provider": "deterministic"
+  },
+  "observations": [
+    {
+      "observationId": "c07-obs-preview-http-reachable",
+      "checkName": "preview-http-reachable",
+      "startedAt": "2026-09-30T20:03:57.924Z",
+      "finishedAt": "2026-09-30T20:03:57.925Z",
+      "outcome": "pass",
+      "detail": "preview-http-reachable: HTTP 200 at https://healthy-preview.example.invalid body=ok",
+      "evidenceIds": [
+        "c07-obs-preview-http-reachable"
+      ]
+    },
+    {
+      "observationId": "c07-obs-published-http-reachable",
+      "checkName": "published-http-reachable",
+      "startedAt": "2026-09-30T20:03:57.925Z",
+      "finishedAt": "2026-09-30T20:03:57.925Z",
+      "outcome": "pass",
+      "detail": "published-http-reachable: HTTP 200 at https://healthy-published.example.invalid body=ok",
+      "evidenceIds": [
+        "c07-obs-published-http-reachable"
+      ]
+    },
+    {
+      "observationId": "c07-obs-published-login-probe",
+      "checkName": "published-login-probe",
+      "startedAt": "2026-09-30T20:03:57.925Z",
+      "finishedAt": "2026-09-30T20:03:57.925Z",
+      "outcome": "fail",
+      "detail": "published-login-probe: HTTP 500 at https://healthy-published.example.invalid/login body=missing PROD_LOGIN_KEY",
+      "evidenceIds": [
+        "c07-obs-published-login-probe"
+      ]
+    }
+  ],
+  "diagnosis": {
+    "hypotheses": [
+      {
+        "hypothesisId": "c07-hyp-1",
+        "category": "intermittent-unverified",
+        "rank": 1,
+        "evidenceIds": [
+          "c07-ticket"
+        ],
+        "disconfirmingTest": "Re-run the failing check twice; two consecutive passes mark it intermittent or resolved.",
+        "uncertainty": "Single observation only; intermittence unconfirmed."
+      }
+    ],
+    "abstention": null,
+    "conflicts": [],
+    "unknowns": [
+      "timestamp",
+      "deploymentType"
+    ],
+    "injectionFlagged": false,
+    "definitive": true,
+    "evidenceBar": {
+      "passed": true,
+      "reason": "ticket names a concrete symptom"
+    }
+  }
+}
