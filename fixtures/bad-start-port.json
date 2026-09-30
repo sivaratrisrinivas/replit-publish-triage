@@ -1,0 +1,30 @@
+{
+  "fixtureId": "bad-start-port",
+  "label": "SYNTHETIC published start/port failure",
+  "expectedBehavior": "Published app never becomes available due to start command and host binding. Must select startup path without unrelated database claim.",
+  "previewConfig": {
+    "fixtureId": "bad-start-port",
+    "environment": "preview",
+    "deploymentType": "autoscale",
+    "startCommand": "npm start",
+    "host": "0.0.0.0",
+    "port": 3000,
+    "envVarNames": ["NODE_ENV"],
+    "secretsPresentNames": [],
+    "publicUrl": "https://badport-preview.example.invalid"
+  },
+  "publishedConfig": {
+    "fixtureId": "bad-start-port",
+    "environment": "published",
+    "deploymentType": "reserved-vm",
+    "startCommand": "node wrong-entry.js",
+    "host": "127.0.0.1",
+    "port": 5000,
+    "envVarNames": ["NODE_ENV"],
+    "secretsPresentNames": [],
+    "publicUrl": "https://badport-published.example.invalid"
+  },
+  "ticket": "SYNTHETIC: Preview loads, published URL times out. Logs mention listening on 127.0.0.1:5000 with wrong entrypoint.",
+  "syntheticLog": "SYNTHETIC published log: listening on 127.0.0.1:5000 via wrong-entry.js; health check unreachable.",
+  "synthetic": true
+}

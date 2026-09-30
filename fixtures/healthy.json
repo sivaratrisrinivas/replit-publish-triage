@@ -1,0 +1,31 @@
+{
+  "fixtureId": "healthy",
+  "label": "SYNTHETIC healthy demo app",
+  "expectedBehavior": "Preview responds 200 and published responds 200. Accusatory tickets must not produce an invented publishing defect.",
+  "previewConfig": {
+    "fixtureId": "healthy",
+    "environment": "preview",
+    "deploymentType": "autoscale",
+    "startCommand": "npm start",
+    "buildCommand": "npm run build",
+    "host": "0.0.0.0",
+    "port": 3000,
+    "envVarNames": ["NODE_ENV", "PUBLIC_URL"],
+    "secretsPresentNames": ["SESSION_SECRET"],
+    "publicUrl": "https://healthy-preview.example.invalid"
+  },
+  "publishedConfig": {
+    "fixtureId": "healthy",
+    "environment": "published",
+    "deploymentType": "autoscale",
+    "startCommand": "npm start",
+    "buildCommand": "npm run build",
+    "host": "0.0.0.0",
+    "port": 3000,
+    "envVarNames": ["NODE_ENV", "PUBLIC_URL"],
+    "secretsPresentNames": ["SESSION_SECRET"],
+    "publicUrl": "https://healthy-published.example.invalid"
+  },
+  "ticket": "Preview works and published works, but customer claims published login fails. No logs supplied.",
+  "synthetic": true
+}
