@@ -44,7 +44,7 @@
       "deploymentType": null
     },
     "conflicts": [
-      "log conflict: supplied logs report both success and failure for the tested route"
+      "log conflict (login route): supplied logs report both success and failure for POST /login; login-route claims are withheld, other routes unaffected"
     ],
     "disposition": "conflicted",
     "evidenceRequest": [
@@ -57,8 +57,8 @@
     {
       "observationId": "s18-obs-preview-http-reachable",
       "checkName": "preview-http-reachable",
-      "startedAt": "2026-09-30T19:07:58.351Z",
-      "finishedAt": "2026-09-30T19:07:58.351Z",
+      "startedAt": "2026-09-30T19:14:10.715Z",
+      "finishedAt": "2026-09-30T19:14:10.715Z",
       "outcome": "pass",
       "detail": "preview-http-reachable: HTTP 200 at https://badport-preview.example.invalid body=ok",
       "evidenceIds": [
@@ -68,8 +68,8 @@
     {
       "observationId": "s18-obs-published-http-reachable",
       "checkName": "published-http-reachable",
-      "startedAt": "2026-09-30T19:07:58.351Z",
-      "finishedAt": "2026-09-30T19:07:58.351Z",
+      "startedAt": "2026-09-30T19:14:10.715Z",
+      "finishedAt": "2026-09-30T19:14:10.715Z",
       "outcome": "fail",
       "detail": "published-http-reachable: HTTP 503 at https://badport-published.example.invalid body=ok",
       "evidenceIds": [
@@ -79,8 +79,8 @@
     {
       "observationId": "s18-obs-config-start-port-audit",
       "checkName": "config-start-port-audit",
-      "startedAt": "2026-09-30T19:07:58.351Z",
-      "finishedAt": "2026-09-30T19:07:58.352Z",
+      "startedAt": "2026-09-30T19:14:10.715Z",
+      "finishedAt": "2026-09-30T19:14:10.715Z",
       "outcome": "fail",
       "detail": "startCommand differs: preview=npm start published=node wrong-entry.js; host differs: preview=0.0.0.0 published=127.0.0.1; port differs: preview=3000 published=5000; published binds loopback (127.0.0.1); unreachable from public URL",
       "evidenceIds": [
@@ -89,10 +89,23 @@
     }
   ],
   "diagnosis": {
-    "hypotheses": [],
-    "abstention": "Unresolved: log conflict: supplied logs report both success and failure for the tested route. No diagnosis until conflicting evidence is clarified.",
+    "hypotheses": [
+      {
+        "hypothesisId": "s18-hyp-1",
+        "category": "published-startup-config",
+        "rank": 1,
+        "evidenceIds": [
+          "s18-ticket",
+          "s18-config-diff",
+          "s18-obs-config-start-port-audit"
+        ],
+        "disconfirmingTest": "Fix start command and bind 0.0.0.0 on the published port, then re-run published-http-reachable; reachable disconfirms.",
+        "uncertainty": "Startup drift is observed; the reason for the drift (manual edit vs deploy pipeline) is unknown. Recorded conflict does not apply to this claim: log conflict (login route): supplied logs report both success and failure for POST /login; login-route claims are withheld, other routes unaffected."
+      }
+    ],
+    "abstention": null,
     "conflicts": [
-      "log conflict: supplied logs report both success and failure for the tested route"
+      "log conflict (login route): supplied logs report both success and failure for POST /login; login-route claims are withheld, other routes unaffected"
     ],
     "unknowns": [
       "timestamp",

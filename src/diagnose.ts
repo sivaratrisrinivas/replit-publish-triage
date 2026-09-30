@@ -55,6 +55,21 @@ function hasField(diffs: ConfigDifference[], field: string): boolean {
   return diffs.some((d) => d.field === field);
 }
 
+type Scope = "login-route" | "startup" | "redirect" | "all";
+
+// A conflict vetoes only the scope it contests. Prefixes double as scope tags:
+// "log conflict" contests the login route; preview/ticket/diagnosis conflicts
+// contest the whole case framing because every category assumes a working preview.
+function contestedScopes(conflicts: string[]): Set<Scope> {
+  const scopes = new Set<Scope>();
+  for (const c of conflicts) {
+    const lower = c.toLowerCase();
+    if (lower.startsWith("log conflict")) scopes.add("login-route");
+    else scopes.add("all");
+  }
+  return scopes;
+}
+
 function evidenceBarCheck(input: {
   ticketText: string;
   currentLogCount: number;
@@ -103,7 +118,7 @@ export function diagnose(input: DiagnoseInput): DiagnoseOutput {
   const auditObs = obsByCheck(input.observations, "config-start-port-audit");
   const redirectObs = obsByCheck(input.observations, "published-redirect-follow");
 
-  const candidates: Array<{ category: Category; evidenceIds: string[]; disconfirmingTest: string; uncertainty: string }> = [];
+  const candidates: Array<{ category: Category; scope: Scope; evidenceIds: string[]; disconfirmingTest: string; uncertainty: string }> = [];
 
   if (
     (hasField(input.diffs, "secretsPresentNames") || hasField(input.diffs, "envVarNames")) &&
@@ -111,6 +126,7 @@ export function diagnose(input: DiagnoseInput): DiagnoseOutput {
   ) {
     candidates.push({
       category: "missing-production-config",
+      scope: "login-route",
       evidenceIds: cite([
         `${input.caseId}-ticket`,
         `${input.caseId}-config-diff`,
@@ -128,6 +144,7 @@ export function diagnose(input: DiagnoseInput): DiagnoseOutput {
   ) {
     candidates.push({
       category: "published-startup-config",
+      scope: "startup",
       evidenceIds: cite([`${input.caseId}-ticket`, `${input.caseId}-config-diff`, auditObs.observationId]),
       disconfirmingTest: "Fix start command and bind 0.0.0.0 on the published port, then re-run published-http-reachable; reachable disconfirms.",
       uncertainty: "Startup drift is observed; the reason for the drift (manual edit vs deploy pipeline) is unknown.",
@@ -137,6 +154,7 @@ export function diagnose(input: DiagnoseInput): DiagnoseOutput {
   if (redirectObs && redirectObs.outcome !== "pass") {
     candidates.push({
       category: "redirect-config",
+      scope: "redirect",
       evidenceIds: cite([`${input.caseId}-ticket`, redirectObs.observationId]),
       disconfirmingTest: "Fetch the published URL with redirect tracing; a direct 200 with no hop disconfirms.",
       uncertainty: redirectObs.outcome === "incomplete" ? "Browser verification incomplete; redirect unconfirmed." : "Redirect behavior observed once; loop vs single hop unknown.",
@@ -151,22 +169,30 @@ export function diagnose(input: DiagnoseInput): DiagnoseOutput {
   ) {
     candidates.push({
       category: "intermittent-unverified",
+      scope: loginObs?.outcome === "fail" ? "login-route" : "startup",
       evidenceIds: cite([`${input.caseId}-ticket`]),
       disconfirmingTest: "Re-run the failing check twice; two consecutive passes mark it intermittent or resolved.",
       uncertainty: "Single observation only; intermittence unconfirmed.",
     });
   }
 
-  let hypotheses: Hypothesis[] = candidates.map((c, i) =>
+  const scoped = contestedScopes(conflicts);
+  const survivors = scoped.has("all") ? [] : candidates.filter((c) => !scoped.has(c.scope));
+  const conflictNote =
+    scoped.size > 0 && !scoped.has("all")
+      ? ` Recorded conflict does not apply to this claim: ${conflicts.join("; ")}.`
+      : "";
+
+  let hypotheses: Hypothesis[] = survivors.map((c, i) =>
     HypothesisSchema.parse({
       hypothesisId: `${input.caseId}-hyp-${i + 1}`,
       category: c.category,
       rank: i + 1,
       evidenceIds: c.evidenceIds.length > 0 ? c.evidenceIds : [`${input.caseId}-ticket`],
       disconfirmingTest: c.disconfirmingTest,
-      uncertainty: input.docStale
+      uncertainty: (input.docStale
         ? `${c.uncertainty} Source documentation (${input.docVersion ?? "unknown version"}) is stale and cannot support a definitive recommendation.`
-        : c.uncertainty,
+        : c.uncertainty) + conflictNote,
     }),
   );
 
@@ -174,7 +200,7 @@ export function diagnose(input: DiagnoseInput): DiagnoseOutput {
     input.diffs.length === 0 ||
     (loginObs?.outcome === "pass" && !hasField(input.diffs, "startCommand") && auditObs?.outcome !== "fail");
   const bar =
-    input.extraction.disposition === "conflicted" || candidates.length === 0
+    input.extraction.disposition === "conflicted" || survivors.length === 0
       ? { passed: true, reason: "no ranked diagnosis proposed" }
       : evidenceBarCheck({
           ticketText,
@@ -183,17 +209,17 @@ export function diagnose(input: DiagnoseInput): DiagnoseOutput {
           actual: input.extraction.actual,
         });
   let abstention: string | null = null;
-  if (healthyPass && candidates.length === 0) {
+  if (healthyPass && survivors.length === 0) {
     hypotheses = [];
     abstention =
       "No supplied or observed evidence supports a publishing defect; not reproduced. Ask for failing-route logs before diagnosing.";
-  } else if (input.extraction.disposition === "conflicted") {
-    abstention = `Unresolved: ${conflicts.join("; ")}. No diagnosis until conflicting evidence is clarified.`;
+  } else if (survivors.length === 0) {
+    abstention = `Unresolved: ${conflicts.join("; ") || "conflicting evidence"}. No diagnosis until conflicting evidence is clarified.`;
     hypotheses = [];
   } else if (!bar.passed) {
     abstention = `Insufficient customer-supplied support (${bar.reason}). Request evidence instead of guessing.`;
     hypotheses = [];
-  } else if (input.extraction.disposition === "needs-evidence" && candidates.length === 0) {
+  } else if (input.extraction.disposition === "needs-evidence" && survivors.length === 0) {
     abstention = `Insufficient evidence: ${input.extraction.evidenceRequest.join(", ")}. Request evidence instead of guessing.`;
   }
 

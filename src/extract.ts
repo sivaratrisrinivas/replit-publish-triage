@@ -51,7 +51,7 @@ function detectConflicts(ticketText: string, logs: string[]): string[] {
   const hasSuccess = logs.some((l) => /(200\s*ok|success|passed)/i.test(l) && /publish|login|\//i.test(l));
   const hasFailure = logs.some((l) => /(500|502|503|fail\w*|timeout|error)/i.test(l));
   if (hasSuccess && hasFailure) {
-    conflicts.push("log conflict: supplied logs report both success and failure for the tested route");
+    conflicts.push("log conflict (login route): supplied logs report both success and failure for POST /login; login-route claims are withheld, other routes unaffected");
   }
 
   const allSuccess = logs.length > 0 && !hasFailure && hasSuccess && claimsPublishedFail;

@@ -46,7 +46,7 @@
       "deploymentType": null
     },
     "conflicts": [
-      "log conflict: supplied logs report both success and failure for the tested route"
+      "log conflict (login route): supplied logs report both success and failure for POST /login; login-route claims are withheld, other routes unaffected"
     ],
     "disposition": "conflicted",
     "evidenceRequest": [
@@ -59,8 +59,8 @@
     {
       "observationId": "s06-obs-preview-http-reachable",
       "checkName": "preview-http-reachable",
-      "startedAt": "2026-09-30T19:07:58.135Z",
-      "finishedAt": "2026-09-30T19:07:58.135Z",
+      "startedAt": "2026-09-30T19:14:10.569Z",
+      "finishedAt": "2026-09-30T19:14:10.569Z",
       "outcome": "pass",
       "detail": "preview-http-reachable: HTTP 200 at https://missing-preview.example.invalid body=ok",
       "evidenceIds": [
@@ -70,8 +70,8 @@
     {
       "observationId": "s06-obs-published-http-reachable",
       "checkName": "published-http-reachable",
-      "startedAt": "2026-09-30T19:07:58.136Z",
-      "finishedAt": "2026-09-30T19:07:58.136Z",
+      "startedAt": "2026-09-30T19:14:10.569Z",
+      "finishedAt": "2026-09-30T19:14:10.569Z",
       "outcome": "fail",
       "detail": "published-http-reachable: HTTP 500 at https://missing-published.example.invalid body=ok",
       "evidenceIds": [
@@ -81,8 +81,8 @@
     {
       "observationId": "s06-obs-published-login-probe",
       "checkName": "published-login-probe",
-      "startedAt": "2026-09-30T19:07:58.136Z",
-      "finishedAt": "2026-09-30T19:07:58.136Z",
+      "startedAt": "2026-09-30T19:14:10.570Z",
+      "finishedAt": "2026-09-30T19:14:10.570Z",
       "outcome": "fail",
       "detail": "published-login-probe: HTTP 500 at https://missing-published.example.invalid/login body=missing PROD_LOGIN_KEY",
       "evidenceIds": [
@@ -92,9 +92,9 @@
   ],
   "diagnosis": {
     "hypotheses": [],
-    "abstention": "Unresolved: log conflict: supplied logs report both success and failure for the tested route. No diagnosis until conflicting evidence is clarified.",
+    "abstention": "Unresolved: log conflict (login route): supplied logs report both success and failure for POST /login; login-route claims are withheld, other routes unaffected. No diagnosis until conflicting evidence is clarified.",
     "conflicts": [
-      "log conflict: supplied logs report both success and failure for the tested route"
+      "log conflict (login route): supplied logs report both success and failure for POST /login; login-route claims are withheld, other routes unaffected"
     ],
     "unknowns": [
       "timestamp",

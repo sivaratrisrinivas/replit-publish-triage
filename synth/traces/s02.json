@@ -58,8 +58,8 @@
     {
       "observationId": "s02-obs-preview-http-reachable",
       "checkName": "preview-http-reachable",
-      "startedAt": "2026-09-30T19:07:58.071Z",
-      "finishedAt": "2026-09-30T19:07:58.071Z",
+      "startedAt": "2026-09-30T19:14:10.516Z",
+      "finishedAt": "2026-09-30T19:14:10.516Z",
       "outcome": "pass",
       "detail": "preview-http-reachable: HTTP 200 at https://badport-preview.example.invalid body=ok",
       "evidenceIds": [
@@ -69,8 +69,8 @@
     {
       "observationId": "s02-obs-published-http-reachable",
       "checkName": "published-http-reachable",
-      "startedAt": "2026-09-30T19:07:58.072Z",
-      "finishedAt": "2026-09-30T19:07:58.072Z",
+      "startedAt": "2026-09-30T19:14:10.517Z",
+      "finishedAt": "2026-09-30T19:14:10.517Z",
       "outcome": "fail",
       "detail": "published-http-reachable: HTTP 503 at https://badport-published.example.invalid body=ok",
       "evidenceIds": [
@@ -80,8 +80,8 @@
     {
       "observationId": "s02-obs-config-start-port-audit",
       "checkName": "config-start-port-audit",
-      "startedAt": "2026-09-30T19:07:58.072Z",
-      "finishedAt": "2026-09-30T19:07:58.072Z",
+      "startedAt": "2026-09-30T19:14:10.517Z",
+      "finishedAt": "2026-09-30T19:14:10.517Z",
       "outcome": "fail",
       "detail": "startCommand differs: preview=npm start published=node wrong-entry.js; host differs: preview=0.0.0.0 published=127.0.0.1; port differs: preview=3000 published=5000; published binds loopback (127.0.0.1); unreachable from public URL",
       "evidenceIds": [

@@ -61,8 +61,8 @@
     {
       "observationId": "s14-obs-preview-http-reachable",
       "checkName": "preview-http-reachable",
-      "startedAt": "2026-09-30T19:07:58.299Z",
-      "finishedAt": "2026-09-30T19:07:58.299Z",
+      "startedAt": "2026-09-30T19:14:10.669Z",
+      "finishedAt": "2026-09-30T19:14:10.669Z",
       "outcome": "pass",
       "detail": "preview-http-reachable: HTTP 200 at https://missing-preview.example.invalid body=ok",
       "evidenceIds": [
@@ -72,8 +72,8 @@
     {
       "observationId": "s14-obs-published-http-reachable",
       "checkName": "published-http-reachable",
-      "startedAt": "2026-09-30T19:07:58.299Z",
-      "finishedAt": "2026-09-30T19:07:58.299Z",
+      "startedAt": "2026-09-30T19:14:10.669Z",
+      "finishedAt": "2026-09-30T19:14:10.669Z",
       "outcome": "fail",
       "detail": "published-http-reachable: HTTP 500 at https://missing-published.example.invalid body=ok",
       "evidenceIds": [
@@ -83,8 +83,8 @@
     {
       "observationId": "s14-obs-published-login-probe",
       "checkName": "published-login-probe",
-      "startedAt": "2026-09-30T19:07:58.299Z",
-      "finishedAt": "2026-09-30T19:07:58.299Z",
+      "startedAt": "2026-09-30T19:14:10.669Z",
+      "finishedAt": "2026-09-30T19:14:10.669Z",
       "outcome": "fail",
       "detail": "published-login-probe: HTTP 500 at https://missing-published.example.invalid/login body=missing PROD_LOGIN_KEY",
       "evidenceIds": [
