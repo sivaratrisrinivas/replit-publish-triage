@@ -73,4 +73,15 @@ describe("review server", () => {
     expect(html).toContain("$2,500");
     expect(html).toContain("assumption");
   });
+
+  it("roi defaults to the low scenario when no params are given", async () => {
+    const html = await (await fetch(`${baseUrl}/roi`)).text();
+    expect(html).not.toContain("$0/mo");
+    expect(html).toContain("$2,500/mo");
+  });
+
+  it("roi falls back to defaults on blank and non-numeric params", async () => {
+    const html = await (await fetch(`${baseUrl}/roi?eligible=&minutes=abc&cost=-5`)).text();
+    expect(html).toContain("$2,500/mo");
+  });
 });

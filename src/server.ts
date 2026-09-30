@@ -324,7 +324,10 @@ function roiHtml(params: { eligible: number; minutes: number; cost: number; valu
 
 function roiRoute(): (req: IncomingMessage, res: ServerResponse, url: URL) => Promise<void> {
   return async (_req, res, url) => {
+    // Number(null) is 0, which passes the isFinite guard, so an absent param
+    // would silently become zero instead of falling back to the default.
     const num = (v: string | null, fallback: number): number => {
+      if (v === null || v.trim() === "") return fallback;
       const n = Number(v);
       return Number.isFinite(n) && n >= 0 ? n : fallback;
     };
