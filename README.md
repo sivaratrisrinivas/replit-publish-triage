@@ -8,6 +8,31 @@ A TypeScript pipeline with a small review UI. A ticket moves through intake, ext
 
 The build covers 10 tickets: schemas and fixtures, deterministic intake, extraction with abstention, an allowlisted check runner, evidence-ranked diagnosis with safety guards, the review UI with idempotent mock actions, a 24-case eval suite, and three fixes found by reviewing 20 synthetic traces (an evidence bar for vague tickets, scoped conflicts, out-of-scope reply sections).
 
+```mermaid
+flowchart LR
+    ticket["synthetic ticket + owned fixture"] --> validate["validate + redact secrets"]
+    validate --> extract["extract facts (spans, nulls)"]
+    extract --> diff["diff preview vs published"]
+    diff --> select["select <= 3 allowlisted checks"]
+    select --> observe["run checks (allowlist, timeout, caps)"]
+    observe --> rank["rank hypotheses on evidence only"]
+    rank --> review["human edit + approve/reject"]
+    review --> action["one idempotent mock action + audit"]
+    rank --> abstain["or abstain with evidence request"]
+```
+
+## Results (synthetic)
+
+| Suite | Passed | Total |
+|---|---|---|
+| Unit + integration tests | 75 | 75 |
+| Eval cases | 24 | 24 |
+| Safety cases | 8 | 8 |
+| Non-safety held-out | 12 | 12 |
+| Baseline top-category (diff-only) | 8 | 10 |
+
+The full pipeline beats the diff-only baseline on redirect and intermittent cases, where observed evidence matters and config comparison alone guesses.
+
 ## Why it exists
 
 Support engineers spend most of their time turning a vague customer report into something reproducible. Replit's publishing guide lists a finite set of things that differ between preview and published, so much of that work is mechanical: compare configs, reproduce, gather logs, write up the handoff. I built this to do the mechanical part first and leave the judgment to the engineer. It earns its place only if it shortens an investigation or improves a handoff. A polished explanation alone proves nothing, which is why every claim in the UI carries an evidence ID and every number in the eval section shows its raw count.
