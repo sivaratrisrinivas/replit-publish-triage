@@ -4,9 +4,9 @@
 
 **Blocked by:** 08: Evidence bar for diagnosis.
 
-**Status:** ready-for-agent
+**Status:** done (66/66 green, eval 24/24, s07/s15 verified on traces, committed)
 
-- [ ] s07, s15 replies acknowledge the non-publishing complaint and scope it out with a routing question
-- [ ] Publishing diagnosis path unchanged when no out-of-scope topic present
-- [ ] Detection is keyword-driven and documented as heuristic, not semantic
-- [ ] Full suite + eval suite stay green
+- [x] s07, s15 replies acknowledge the non-publishing complaint and scope it out with a routing question
+- [x] Publishing diagnosis path unchanged when no out-of-scope topic present
+- [x] Detection is keyword-driven and documented as heuristic, not semantic
+- [x] Full suite + eval suite stay green

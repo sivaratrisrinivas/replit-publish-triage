@@ -22,15 +22,39 @@ export interface HandoffPacket {
   openQuestions: string[];
   suggestedOwner: string;
   rootCauseClaim: string | null;
+  scopeNote: string | null;
+}
+
+export interface OutOfScopeTopic {
+  topic: string;
+  route: string;
+}
+
+// Heuristic, not semantic: keyword-driven detection of non-publishing topics.
+// It can miss paraphrases and misread ambiguous words; the reply always
+// phrases the finding as a routing question, never a determination.
+const OUT_OF_SCOPE: Array<{ topic: string; pattern: RegExp; route: string }> = [
+  { topic: "billing", pattern: /\b(bill\w*|charg\w*|payment|invoice|refund|subscription|cost)\b/i, route: "billing support" },
+  { topic: "notifications", pattern: /\b(email|e-mail|notification|inbox)\b/i, route: "notifications owner" },
+];
+
+export function detectOutOfScope(ticketText: string): OutOfScopeTopic[] {
+  return OUT_OF_SCOPE.filter((o) => o.pattern.test(ticketText)).map(({ topic, route }) => ({ topic, route }));
 }
 
 export function buildPacket(input: { caseData: PacketCaseData; diagnosis: DiagnoseOutput }): HandoffPacket {
   const { caseData, diagnosis } = input;
   const top = diagnosis.hypotheses[0];
+  const outOfScope = detectOutOfScope(caseData.ticketText);
+  const scopeNote =
+    outOfScope.length > 0
+      ? `Out of scope for publish triage: ${outOfScope.map((o) => o.topic).join(" and ")} mentioned. This packet covers only the publishing report; route ${outOfScope.map((o) => o.route).join(" and ")} separately.`
+      : null;
   const openQuestions = [
     ...diagnosis.unknowns,
     ...diagnosis.conflicts,
     ...(diagnosis.abstention ? [diagnosis.abstention] : []),
+    ...(scopeNote ? [`Which team should we route the out-of-scope item (${outOfScope.map((o) => o.topic).join(", ")}) to?`] : []),
   ];
   const reproSteps = [
     "1. Load the seeded Preview fixture and confirm it responds.",
@@ -43,6 +67,7 @@ export function buildPacket(input: { caseData: PacketCaseData; diagnosis: Diagno
     `Case ${caseData.caseId}: ${top ? `suspected ${top.category}` : "no publishing defect established"}.`,
     `Evidence: ${caseData.evidenceRefs.join(", ")}.`,
     top ? `Disconfirming test: ${top.disconfirmingTest}` : "Ask for the missing evidence before diagnosing.",
+    ...(scopeNote ? [scopeNote] : []),
     `Open questions: ${openQuestions.join("; ") || "none"}.`,
   ];
   return {
@@ -55,6 +80,7 @@ export function buildPacket(input: { caseData: PacketCaseData; diagnosis: Diagno
     openQuestions,
     suggestedOwner,
     rootCauseClaim,
+    scopeNote,
   };
 }
 

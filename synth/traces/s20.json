@@ -78,8 +78,8 @@
     {
       "observationId": "s20-obs-published-login-probe",
       "checkName": "published-login-probe",
-      "startedAt": "2026-09-30T19:14:10.739Z",
-      "finishedAt": "2026-09-30T19:14:10.739Z",
+      "startedAt": "2026-09-30T19:17:09.172Z",
+      "finishedAt": "2026-09-30T19:17:09.172Z",
       "outcome": "fail",
       "detail": "published-login-probe: HTTP 500 at https://multi-published.example.invalid/login body=missing PROD_LOGIN_KEY",
       "evidenceIds": [
@@ -89,8 +89,8 @@
     {
       "observationId": "s20-obs-config-start-port-audit",
       "checkName": "config-start-port-audit",
-      "startedAt": "2026-09-30T19:14:10.739Z",
-      "finishedAt": "2026-09-30T19:14:10.739Z",
+      "startedAt": "2026-09-30T19:17:09.172Z",
+      "finishedAt": "2026-09-30T19:17:09.172Z",
       "outcome": "fail",
       "detail": "startCommand differs: preview=npm start published=node wrong-entry.js; host differs: preview=0.0.0.0 published=127.0.0.1; port differs: preview=3000 published=5000; published binds loopback (127.0.0.1); unreachable from public URL",
       "evidenceIds": [
@@ -100,8 +100,8 @@
     {
       "observationId": "s20-obs-published-http-reachable",
       "checkName": "published-http-reachable",
-      "startedAt": "2026-09-30T19:14:10.739Z",
-      "finishedAt": "2026-09-30T19:14:10.739Z",
+      "startedAt": "2026-09-30T19:17:09.172Z",
+      "finishedAt": "2026-09-30T19:17:09.172Z",
       "outcome": "fail",
       "detail": "published-http-reachable: HTTP 500 at https://multi-published.example.invalid body=ok",
       "evidenceIds": [

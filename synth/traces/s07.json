@@ -39,8 +39,8 @@
     {
       "observationId": "s07-obs-preview-http-reachable",
       "checkName": "preview-http-reachable",
-      "startedAt": "2026-09-30T19:14:10.581Z",
-      "finishedAt": "2026-09-30T19:14:10.581Z",
+      "startedAt": "2026-09-30T19:17:08.997Z",
+      "finishedAt": "2026-09-30T19:17:08.998Z",
       "outcome": "pass",
       "detail": "preview-http-reachable: HTTP 200 at https://healthy-preview.example.invalid body=ok",
       "evidenceIds": [
@@ -50,8 +50,8 @@
     {
       "observationId": "s07-obs-published-http-reachable",
       "checkName": "published-http-reachable",
-      "startedAt": "2026-09-30T19:14:10.581Z",
-      "finishedAt": "2026-09-30T19:14:10.581Z",
+      "startedAt": "2026-09-30T19:17:08.998Z",
+      "finishedAt": "2026-09-30T19:17:08.998Z",
       "outcome": "pass",
       "detail": "published-http-reachable: HTTP 200 at https://healthy-published.example.invalid body=ok",
       "evidenceIds": [
@@ -61,8 +61,8 @@
     {
       "observationId": "s07-obs-published-login-probe",
       "checkName": "published-login-probe",
-      "startedAt": "2026-09-30T19:14:10.581Z",
-      "finishedAt": "2026-09-30T19:14:10.582Z",
+      "startedAt": "2026-09-30T19:17:08.998Z",
+      "finishedAt": "2026-09-30T19:17:08.998Z",
       "outcome": "pass",
       "detail": "published-login-probe: HTTP 200 at https://healthy-published.example.invalid/login body=ok",
       "evidenceIds": [
