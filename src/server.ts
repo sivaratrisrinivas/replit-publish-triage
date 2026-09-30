@@ -15,6 +15,49 @@ export interface ServerOptions {
 const esc = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+const STYLE = `<style>
+body{font-family:Georgia,serif;background:#faf7f2;color:#292524;margin:0;line-height:1.5}
+main{max-width:680px;margin:0 auto;padding:32px 20px 64px}
+a{color:#0c4a6e}
+.topnav{font-family:Arial,sans-serif;font-size:13px;color:#78716c;margin-bottom:24px}
+.topnav a{color:#78716c}
+h1{font-size:28px;margin:0 0 4px}
+.sub{color:#78716c;margin:0 0 28px}
+.card{background:#fff;border:1px solid #e7e5e4;border-radius:12px;padding:18px 20px;margin:0 0 14px;display:block;text-decoration:none;color:inherit}
+.card:hover{border-color:#f59e0b}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px}
+.dot-amber{background:#d97706}.dot-red{background:#dc2626}.dot-green{background:#16a34a}.dot-grey{background:#a8a29e}
+.statusline{font-family:Arial,sans-serif;font-size:15px;font-weight:bold}
+.fine{font-family:Arial,sans-serif;font-size:13px;color:#78716c}
+.step{background:#fff;border:1px solid #e7e5e4;border-radius:12px;padding:16px 20px;margin:0 0 12px}
+.step h2{font-size:17px;margin:0 0 8px}
+.verdict{background:#1c1917;color:#faf7f2;border-radius:12px;padding:20px;margin:0 0 20px}
+.verdict p{margin:0;font-size:18px}
+textarea{width:100%;box-sizing:border-box;font-family:Georgia,serif;font-size:15px;border:1px solid #d6d3d1;border-radius:8px;padding:12px}
+button.primary{background:#ea580c;color:#fff;border:none;border-radius:999px;font-size:17px;padding:12px 36px;cursor:pointer;font-family:Arial,sans-serif}
+button.primary:hover{background:#c2410c}
+.quiet{font-family:Arial,sans-serif;font-size:13px;color:#78716c;background:none;border:none;cursor:pointer;text-decoration:underline;padding:12px}
+.bignum{font-size:56px;margin:8px 0}
+input,select{font-size:15px;padding:8px;border:1px solid #d6d3d1;border-radius:8px}
+label{font-family:Arial,sans-serif;font-size:14px}
+</style>`;
+
+const shell = (title: string, crumb: string, body: string): string =>
+  `<!doctype html><html><head><meta charset="utf8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title>${STYLE}</head><body><main><div class="topnav">${crumb}</div>${body}</main></body></html>`;
+
+const dotFor = (status: string): string =>
+  status === "conflicted" ? "dot-red" : status === "ready" ? "dot-green" : status === "seeded" ? "dot-grey" : "dot-amber";
+
+const plainStatus = (status: string): string =>
+  status === "needs-evidence" ? "Needs evidence" : status === "conflicted" ? "Stuck on a conflict" : status === "ready" ? "Ready to review" : status === "seeded" ? "Example" : status;
+
+const plainCategory = (category: string): string =>
+  category === "secretsPresentNames" || category === "envVarNames"
+    ? "production value missing"
+    : category === "startCommand" || category === "host" || category === "port"
+      ? "startup config drift"
+      : category;
+
 interface QueueRow {
   caseId: string;
   status: string;
@@ -75,16 +118,18 @@ function rowForStored(caseId: string, record: Record<string, unknown>, lastActio
 }
 
 function queueHtml(rows: QueueRow[]): string {
-  const trs = rows
-    .map(
-      (r) =>
-        `<tr><td><a href="/case/${esc(r.caseId)}">${esc(r.caseId)}</a></td><td>${esc(r.status)}</td><td>${esc(r.category)}</td><td>${esc(r.confidence)}</td><td>${esc(r.lastAction)}</td><td>${esc(r.timeSaved)}</td></tr>`,
-    )
+  const cards = rows
+    .map((r) => {
+      const href = r.caseId.startsWith("seeded:") ? null : `/case/${esc(r.caseId)}`;
+      const inner = `<span class="dot ${dotFor(r.status)}"></span><span class="statusline">${esc(plainStatus(r.status))}</span><br><span class="fine">${esc(r.caseId)} · ${esc(plainCategory(r.category))} · confidence ${esc(r.confidence)} · ${esc(r.lastAction)} · saves ${esc(r.timeSaved)}</span>`;
+      return href ? `<a class="card" href="${href}">${inner}</a>` : `<div class="card">${inner}</div>`;
+    })
     .join("\n");
-  return `<!doctype html><html><head><meta charset="utf8"><title>Publish Triage queue (SYNTHETIC)</title></head><body>
-<h1>Publish Triage queue (all data synthetic)</h1>
-<table border="1"><tr><th>case</th><th>status</th><th>category</th><th>confidence</th><th>last action</th><th>est. time saved</th></tr>
-${trs}</table></body></html>`;
+  return shell(
+    "Publish triage",
+    `<a href="/roi">ROI</a>`,
+    `<h1>Which case needs you?</h1><p class="sub">All data synthetic. Dots tell the story: amber means the tool is waiting on evidence, red means it is stuck on a conflict, green means it is ready for your call.</p>${cards}`,
+  );
 }
 
 function detailHtml(params: {
@@ -97,25 +142,33 @@ function detailHtml(params: {
   reply: string;
   key: string;
 }): string {
-  const li = (items: string[]) => items.map((i) => `<li>${esc(i)}</li>`).join("\n");
-  return `<!doctype html><html><head><meta charset="utf8"><title>Case ${esc(params.caseId)}</title></head><body>
-<h1>Case ${esc(params.caseId)} (SYNTHETIC)</h1>
-<h2>Ticket</h2><p>${esc(params.ticketText)}</p>
-<h2>Customer-reported</h2><ul>${li(params.reported)}</ul>
-<h2>Supplied evidence</h2><ul>${li(params.supplied)}</ul>
-<h2>Directly observed</h2><ul>${li(params.observed)}</ul>
-<h2>Inferred</h2><ul>${li(params.inferred)}</ul>
-<h2>Proposed reply (editable)</h2>
+  const li = (items: string[]) =>
+    items.length > 0 ? items.map((i) => `<li>${esc(i)}</li>`).join("\n") : `<li class="fine">nothing here yet</li>`;
+  const verdict =
+    params.inferred.length > 0
+      ? `This is where the evidence points so far. Read the chain, then make the call below.`
+      : `No verdict yet. The chain below shows what is missing.`;
+  return shell(
+    `Case ${params.caseId}`,
+    `<a href="/">all cases</a>`,
+    `<h1>${esc(params.caseId)}</h1><p class="sub">Synthetic case. One decision: approve the reply or send it back.</p>
+<div class="verdict"><p>${verdict}</p></div>
+<div class="step"><h2>What they said</h2><p>${esc(params.ticketText)}</p></div>
+<div class="step"><h2>Customer-reported</h2><ul>${li(params.reported)}</ul></div>
+<div class="step"><h2>Supplied evidence</h2><ul>${li(params.supplied)}</ul></div>
+<div class="step"><h2>Directly observed</h2><ul>${li(params.observed)}</ul></div>
+<div class="step"><h2>Inferred</h2><ul>${li(params.inferred)}</ul></div>
+<div class="step"><h2>Your reply</h2>
 <form method="post" action="/case/${esc(params.caseId)}/review">
-<textarea name="editedReply" rows="6" cols="80">${esc(params.reply)}</textarea><br>
-<label>Target <select name="target"><option value="mock-zendesk">mock-zendesk</option><option value="mock-linear">mock-linear</option></select></label>
-<label>Idempotency key <input name="idempotencyKey" size="40" value="${esc(params.key)}"></label><br>
-<label>Reviewer <input name="reviewer" value="sam"></label><br>
-<button type="submit" name="decision" value="approve">Approve</button>
-<button type="submit" name="decision" value="reject">Reject</button>
-</form>
-<p><a href="/case/${esc(params.caseId)}/export.md">Markdown export</a> · <a href="/case/${esc(params.caseId)}/export.json">JSON export</a> · <a href="/">queue</a></p>
-</body></html>`;
+<textarea name="editedReply" rows="6">${esc(params.reply)}</textarea>
+<input type="hidden" name="idempotencyKey" value="${esc(params.key)}">
+<p><label>Send as <select name="target"><option value="mock-zendesk">mock-zendesk</option><option value="mock-linear">mock-linear</option></select></label>
+<label>Reviewer <input name="reviewer" value="sam" size="10"></label></p>
+<p><button class="primary" type="submit" name="decision" value="approve">Approve and file</button>
+<button class="quiet" type="submit" name="decision" value="reject">send back</button></p>
+</form></div>
+<p class="fine"><a href="/case/${esc(params.caseId)}/export.md">Markdown export</a> · <a href="/case/${esc(params.caseId)}/export.json">JSON export</a></p>`,
+  );
 }
 
 function readBody(req: IncomingMessage): Promise<string> {
@@ -250,20 +303,23 @@ export function createApp(opts: ServerOptions = {}): Server {
 }
 
 function roiHtml(params: { eligible: number; minutes: number; cost: number; value: number; formula: string; evalSummary: string }): string {
-  return `<!doctype html><html><head><meta charset="utf8"><title>ROI scenario (SYNTHETIC)</title></head><body>
-<h1>ROI scenario — capacity value, not cash saved (all inputs synthetic)</h1>
+  return shell(
+    "ROI scenario",
+    `<a href="/">all cases</a>`,
+    `<h1>What is this worth?</h1><p class="sub">Capacity value, not cash saved. Every input below is synthetic until an insider confirms it.</p>
+<div class="bignum">$${params.value.toLocaleString()}/mo</div>
+<p class="fine">${esc(params.formula)}</p>
 <form method="get" action="/roi">
-<label>Eligible incidents/month <input name="eligible" value="${params.eligible}"></label><br>
-<label>Minutes saved/incident (assumption) <input name="minutes" value="${params.minutes}"></label><br>
-<label>Loaded $/hour (assumption) <input name="cost" value="${params.cost}"></label><br>
-<button type="submit">Recompute</button></form>
-<p>Formula: ${esc(params.formula)} = <strong>$${params.value.toLocaleString()}/month</strong></p>
+<p><label>Eligible cases per month<br><input name="eligible" value="${params.eligible}"></label></p>
+<p><label>Minutes saved each (assumption)<br><input name="minutes" value="${params.minutes}"></label></p>
+<p><label>Loaded dollars per hour (assumption)<br><input name="cost" value="${params.cost}"></label></p>
+<p><button class="primary" type="submit">Recompute</button></p></form>
 <p>Presets: <a href="/roi?eligible=${ROI_LOW.eligiblePerMonth}&minutes=${ROI_LOW.minutesSavedPerIncident}&cost=${ROI_LOW.loadedHourlyCost}">low</a> ·
 <a href="/roi?eligible=${ROI_HIGH.eligiblePerMonth}&minutes=${ROI_HIGH.minutesSavedPerIncident}&cost=${ROI_HIGH.loadedHourlyCost}">high</a></p>
-<p>The one input to confirm with an insider is eligible incidents/month. Handling-time reduction and hourly cost are also assumptions.</p>
-<h2>Eval summary (synthetic cases)</h2><pre>${esc(params.evalSummary)}</pre>
-<p>Paired human timings are recorded live during the demo on the same synthetic case; in-code pipeline milliseconds are not handling time.</p>
-<p><a href="/">queue</a></p></body></html>`;
+<p>The one input to confirm with an insider is eligible cases per month. Handling time and hourly cost are also assumptions.</p>
+<h2>Eval summary</h2><p class="fine">${esc(params.evalSummary)}</p>
+<p class="fine">Human timings get recorded live during the demo on the same synthetic case. Pipeline milliseconds are not handling time.</p>`,
+  );
 }
 
 export function roiRoute(): (req: IncomingMessage, res: ServerResponse, url: URL) => Promise<void> {
