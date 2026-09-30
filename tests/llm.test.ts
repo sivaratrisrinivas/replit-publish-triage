@@ -57,4 +57,26 @@ describe("llm extraction path", () => {
     );
     expect(out.provider).toBe("deterministic");
   });
+
+  it("honors a custom base URL for OpenAI-compatible providers", async () => {
+    process.env.PUBLISH_TRIAGE_LLM = "1";
+    let seenUrl = "";
+    const spy = (async (url: string | URL | Request, init?: RequestInit) => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ choices: [{ message: { content: '{"symptom":null,"expected":null,"actual":null,"environment":null,"timestamp":null,"deploymentType":null}' } }] }),
+    })) as unknown as typeof fetch;
+    const wrapped = (async (url: string | URL | Request, init?: RequestInit) => {
+      seenUrl = String(url);
+      return spy(url, init);
+    }) as unknown as typeof fetch;
+    try {
+      process.env.PUBLISH_TRIAGE_BASE_URL = "https://api.groq.com/openai/v1/chat/completions";
+      await extractIncidentAsync({ ticketText: "hi" }, { llm: { apiKey: "k", fetchImpl: wrapped } });
+      expect(seenUrl).toBe("https://api.groq.com/openai/v1/chat/completions");
+    } finally {
+      delete process.env.PUBLISH_TRIAGE_LLM;
+      delete process.env.PUBLISH_TRIAGE_BASE_URL;
+    }
+  });
 });

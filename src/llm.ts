@@ -34,7 +34,8 @@ export async function completeChat(messages: LlmMessage[], opts: LlmOptions = {}
   const model = opts.model ?? process.env.PUBLISH_TRIAGE_MODEL ?? "openai/gpt-4o-mini";
   const timeoutMs = opts.timeoutMs ?? 30000;
   const fetchImpl = opts.fetchImpl ?? fetch;
-  const endpoint = opts.endpoint ?? "https://openrouter.ai/api/v1/chat/completions";
+  const endpoint =
+    opts.endpoint ?? process.env.PUBLISH_TRIAGE_BASE_URL ?? "https://openrouter.ai/api/v1/chat/completions";
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
