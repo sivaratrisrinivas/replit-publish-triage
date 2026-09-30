@@ -83,6 +83,14 @@ Three consequences of the free tier, all of them visible in the demo:
 
 `serve.ts` binds `$HOST:$PORT` defaulting to `0.0.0.0`, which is what PaaS providers inject and require. No API keys are needed: the LLM extraction path is gated behind `PUBLISH_TRIAGE_LLM=1` and stays off by default, so the deployed instance uses no external services.
 
+## Demo
+
+`docs/demo/publish-triage-demo.webm` — 62 seconds, 1280x720. Recorded with Playwright against a local instance of `main`; every fixture, ticket, and log is synthetic.
+
+The walkthrough follows the real behaviour, including the part that looks like a non-result. The `config-start-port-audit` check passes, which rules out startup drift. The secret set differs between Preview and published, but the tool has not observed the published login failing, so it ranks no cause and asks for the probe instead. The approved reply says the same thing. A demo that showed a confident diagnosis here would be showing a guess.
+
+Regenerate it with `npx playwright` and the script pattern in the `ui-demo` skill, or by hand: `npm run eval && npm start`, then drive `http://localhost:3000`.
+
 ## Generated artifacts (not committed)
 
 `synth/traces/`, `community/traces/`, `eval/results.json`, and `.scratch/` are gitignored. Regenerate them locally when needed:
