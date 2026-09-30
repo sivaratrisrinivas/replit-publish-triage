@@ -25,11 +25,25 @@ flowchart LR
 
 | Suite | Passed | Total | Note |
 |---|---|---|---|
-| Unit + integration tests | 92 | 92 | 18 files, includes release gates |
-| Eval cases (synthetic) | 24 | 24 | safety 8/8, held-out 12/12, lower bound 0.757 |
+| Unit + integration tests | 93 | 93 | 18 files, includes release gates |
+| Eval cases (synthetic) | 24 | 24 | 8 safety, 12 non-safety held-out, 4 non-safety dev |
 | Baseline top-category (diff-only) | 8 | 10 | pipeline wins on redirect + intermittent |
 | Community traces (public reports) | 8 | 8 | 6 correct categories, 2 clean abstentions |
 | Live LLM extractions (Gemini, free tier) | 3 | 3 | vaguest tickets improved over deterministic |
+
+Every row is reproducible: `npm test` and `npm run eval` print the same counts, and CI runs both on every push. The last run was green at 93 tests across 18 files and 24/24 eval.
+
+### How the 24 eval cases split
+
+The 24 cases are not three disjoint buckets. `split` (dev vs held-out) and `safety` are independent flags, so they overlap:
+
+| | safety | non-safety | total |
+|---|---|---|---|
+| held-out | 6 | 12 | 18 |
+| dev | 2 | 4 | 6 |
+| **total** | **8** | **16** | **24** |
+
+The two release gates are: all 8 safety cases pass, and at least 90% of the 12 non-safety held-out cases pass. The 4 dev non-safety cases exist to be tuned against, so they are deliberately excluded from the headline rate. The reported lower bound (0.757) is Wilson at 95% on 12/12, which is the honest number for a suite this small.
 
 The full pipeline beats the diff-only baseline on redirect and intermittent cases, where observed evidence matters and config comparison alone guesses. The community batch (forum and third-party reports, `community/`) found no mishandled failure mode. Live model calls beat the deterministic extractor on vague language but stay optional: the default path uses no model at all.
 
@@ -41,7 +55,7 @@ Support engineers spend most of their time turning a vague customer report into 
 
 You need Node 24 and npm.
 
-1. Install and verify. Run `npm install`, then `npm test`. Expect 92 passed across 18 files. Run `npm run typecheck`. Expect no output after the banner, which means clean.
+1. Install and verify. Run `npm install`, then `npm test`. Expect 93 passed across 18 files. Run `npm run typecheck`. Expect no output after the banner, which means clean.
 
 2. Start the review UI. Run `npm run serve` and open http://localhost:3000. A demo case is seeded automatically.
 
@@ -85,11 +99,16 @@ Three consequences of the free tier, all of them visible in the demo:
 
 ## Demo
 
-`docs/demo/publish-triage-demo.webm` — 62 seconds, 1280x720. Recorded with Playwright against a local instance of `main`; every fixture, ticket, and log is synthetic.
+`docs/demo/publish-triage-demo.webm` — 83 seconds, 1280x720. Recorded with Playwright against a local instance of `main`; every fixture, ticket, and log is synthetic. `DEMO.md` is the script it follows.
 
-The walkthrough follows the real behaviour, including the part that looks like a non-result. The `config-start-port-audit` check passes, which rules out startup drift. The secret set differs between Preview and published, but the tool has not observed the published login failing, so it ranks no cause and asks for the probe instead. The approved reply says the same thing. A demo that showed a confident diagnosis here would be showing a guess.
+The walkthrough runs two seeded cases back to back, because the interesting behaviour is the contrast:
 
-Regenerate it with `npx playwright` and the script pattern in the `ui-demo` skill, or by hand: `npm run eval && npm start`, then drive `http://localhost:3000`.
+- **Case A, `demo-startup-drift`** — `config-start-port-audit` runs and **fails**, so the tool names `published-startup-config` at rank 1 with three citations and a disconfirming test.
+- **Case B, `demo-missing-prod`** — the same report shape, but the audit **passes**, which rules out startup drift. The secret set does differ and the log mentions a 500, and the tool still ranks nothing: "No ranked cause survived the observed evidence." Confirming that cause would need `published-login-probe` to observe the published login failing, and these fixtures point at `example.invalid`, so it cannot.
+
+A demo showing only Case A would misrepresent the tool. On Case B a confident answer would be a guess, and the guess would be indistinguishable from Case A to anyone reading only the summary.
+
+Regenerate with `npm run eval && npm start`, then drive `http://localhost:3000`.
 
 ## Generated artifacts (not committed)
 
@@ -99,4 +118,4 @@ Regenerate it with `npx playwright` and the script pattern in the `ui-demo` skil
 - `npx tsx synth/runBatch.ts synth/batch1.json synth/traces` rebuilds the 20 synthetic traces.
 - `npx tsx synth/runBatch.ts community/batch1.json community/traces` rebuilds the 8 community traces.
 
-Nothing user-facing changed in this cleanup: same 82 tests, same 24 eval cases, same review UI.
+Nothing user-facing changed in this cleanup: same review UI, same seeded case behaviour. Test and eval counts moved only because later fixes added coverage; every number in the table above is reproduced by `npm test` and `npm run eval`.

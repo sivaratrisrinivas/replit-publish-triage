@@ -118,4 +118,57 @@ describe("runCase deterministic pipeline", () => {
     expect(out.observations[0].outcome).toBe("fail");
     expect(out.evidence.filter((e) => e.kind === "directly-observed")[0].content).toMatch(/^fail:/);
   });
+
+  it("names a cause when a check actually fails, and abstains when it passes", async () => {
+    const { diagnose } = await import("../src/diagnose.js");
+    const load = async (fixture: string) =>
+      JSON.parse(await readFile(`fixtures/${fixture}.json`, "utf8")) as {
+        ticket: string;
+        previewConfig: ConfigSnapshot;
+        publishedConfig: ConfigSnapshot;
+        syntheticLog?: string;
+      };
+
+    // bad-start-port: the audit observes a failure, so a cause is ranked.
+    const bad = await load("bad-start-port");
+    const failing = await runCase(
+      {
+        ticket: ticket({ caseId: "case-diag-fail", ticketText: bad.ticket }),
+        previewConfig: bad.previewConfig,
+        publishedConfig: bad.publishedConfig,
+        logs: [bad.syntheticLog as string],
+      },
+      { dataRoot: DATA_ROOT },
+    );
+    const ranked = diagnose({
+      caseId: "case-diag-fail",
+      ticketText: bad.ticket,
+      diffs: failing.diffs,
+      observations: failing.observations,
+      extraction: failing.extraction,
+      evidenceIds: failing.evidence.map((e) => e.evidenceId),
+      logs: [{ evidenceId: "case-diag-fail-log-1", deployment: "current", content: bad.syntheticLog as string }],
+    });
+    expect(ranked.hypotheses[0]?.category).toBe("published-startup-config");
+    expect(ranked.definitive).toBe(true);
+    expect(ranked.abstention).toBeNull();
+    // Every hypothesis must cite the observation that drove it.
+    expect(ranked.hypotheses[0]?.evidenceIds).toContain("case-diag-fail-obs-config-start-port-audit");
+
+    // missing-prod-config: the audit passes, so the tool must not name a cause
+    // from the config difference alone.
+    const { previewConfig, publishedConfig } = configs();
+    const passing = await runCase({ ticket: ticket({ caseId: "case-diag-pass" }), previewConfig, publishedConfig }, { dataRoot: DATA_ROOT });
+    const unranked = diagnose({
+      caseId: "case-diag-pass",
+      ticketText: passing.saved.ticket.ticketText,
+      diffs: passing.diffs,
+      observations: passing.observations,
+      extraction: passing.extraction,
+      evidenceIds: passing.evidence.map((e) => e.evidenceId),
+    });
+    expect(passing.observations[0].outcome).toBe("pass");
+    expect(unranked.hypotheses).toHaveLength(0);
+    expect(unranked.abstention).toMatch(/no ranked cause survived/i);
+  });
 });
