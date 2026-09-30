@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { rm } from "node:fs/promises";
+import { rm, readFile } from "node:fs/promises";
 import { runCase, type RunCaseOutput } from "../src/runCase.js";
 import { loadCase, loadEvents } from "../src/store.js";
 import type { ConfigSnapshot, Ticket } from "../src/schemas.js";
@@ -93,5 +93,29 @@ describe("runCase deterministic pipeline", () => {
     const loaded = await loadCase<RunCaseOutput["saved"]>("case-secret", DATA_ROOT);
     expect(loaded.ticket.ticketText).toContain("[REDACTED]");
     expect(loaded.ticket.ticketText).not.toContain("supersecret123");
+  });
+
+  it("persists check observations as directly-observed evidence", async () => {
+    const { previewConfig, publishedConfig } = configs();
+    const out = await runCase({ ticket: ticket({ caseId: "case-obs" }), previewConfig, publishedConfig }, { dataRoot: DATA_ROOT });
+
+    expect(out.observations.length).toBe(1);
+    expect(out.observations[0].checkName).toBe("config-start-port-audit");
+    const observed = out.evidence.filter((e) => e.kind === "directly-observed");
+    expect(observed.length).toBe(1);
+    expect(observed[0].citation).toBe("check:config-start-port-audit");
+    expect(out.evidence.some((e) => e.evidenceId === observed[0].evidenceId)).toBe(true);
+  });
+
+  it("observes a startup failure on the loopback-bound fixture", async () => {
+    const bad = JSON.parse(
+      await readFile("fixtures/bad-start-port.json", "utf8"),
+    ) as { previewConfig: ConfigSnapshot; publishedConfig: ConfigSnapshot };
+    const out = await runCase(
+      { ticket: ticket({ caseId: "case-obs-fail" }), previewConfig: bad.previewConfig, publishedConfig: bad.publishedConfig },
+      { dataRoot: DATA_ROOT },
+    );
+    expect(out.observations[0].outcome).toBe("fail");
+    expect(out.evidence.filter((e) => e.kind === "directly-observed")[0].content).toMatch(/^fail:/);
   });
 });

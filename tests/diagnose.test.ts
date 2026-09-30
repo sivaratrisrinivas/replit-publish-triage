@@ -149,4 +149,49 @@ describe("diagnose safety", () => {
     const cited = out.hypotheses.flatMap((h) => h.evidenceIds);
     expect(cited).not.toContain("d1-log-1");
   });
+
+  it("does not invent a conflict when nothing was observed", () => {
+    const out = diagnose({
+      ...base,
+      diffs: [diff("secretsPresentNames")],
+      observations: [],
+    });
+    expect(out.abstention).toMatch(/no observations were collected/i);
+    expect(out.abstention).not.toMatch(/conflict/i);
+    expect(out.conflicts).toHaveLength(0);
+  });
+
+  it("distinguishes 'checks ran and passed' from 'no checks ran'", () => {
+    const out = diagnose({
+      ...base,
+      diffs: [diff("secretsPresentNames")],
+      observations: [
+        {
+          observationId: "d1-obs-config-start-port-audit",
+          checkName: "config-start-port-audit",
+          startedAt: "2026-09-30T00:00:00.000Z",
+          finishedAt: "2026-09-30T00:00:00.100Z",
+          outcome: "pass",
+          detail: "start command, host, and port match",
+          evidenceIds: ["d1-obs-config-start-port-audit"],
+        },
+      ],
+    });
+    expect(out.abstention).toMatch(/no ranked cause survived/i);
+    expect(out.abstention).not.toMatch(/conflict/i);
+  });
+
+  it("still names a real conflict when one exists", () => {
+    const out = diagnose({
+      ...base,
+      diffs: [diff("secretsPresentNames")],
+      observations: [],
+      extraction: {
+        ...base.extraction,
+        conflicts: ["preview status conflict: ticket claims preview works but log reports failure"],
+        disposition: "conflicted",
+      },
+    });
+    expect(out.abstention).toMatch(/preview status conflict/);
+  });
 });

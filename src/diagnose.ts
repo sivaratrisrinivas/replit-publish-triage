@@ -214,8 +214,16 @@ export function diagnose(input: DiagnoseInput): DiagnoseOutput {
     abstention =
       "No supplied or observed evidence supports a publishing defect; not reproduced. Ask for failing-route logs before diagnosing.";
   } else if (survivors.length === 0) {
-    abstention = `Unresolved: ${conflicts.join("; ") || "conflicting evidence"}. No diagnosis until conflicting evidence is clarified.`;
     hypotheses = [];
+    // Distinguish the three reasons nothing can be ranked. Folding them into one
+    // message either invented a conflict that does not exist or hid the fact
+    // that no check ever ran.
+    abstention =
+      conflicts.length > 0
+        ? `Unresolved: ${conflicts.join("; ")}. No diagnosis until conflicting evidence is clarified.`
+        : input.observations.length === 0
+          ? "No observations were collected, so no cause is asserted. Run the approved checks against the published app, or request failing-route logs."
+          : "No ranked cause survived the observed evidence. Request more before diagnosing.";
   } else if (!bar.passed) {
     abstention = `Insufficient customer-supplied support (${bar.reason}). Request evidence instead of guessing.`;
     hypotheses = [];

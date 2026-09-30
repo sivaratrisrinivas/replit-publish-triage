@@ -5,7 +5,10 @@ import { join } from "node:path";
 import { approveReview, rejectReview, buildPacket, exportCaseMarkdown } from "./review.js";
 import { computeRoi, ROI_LOW, ROI_HIGH } from "./roi.js";
 import { redactText } from "./redact.js";
-import type { DiagnoseOutput } from "./diagnose.js";
+import { diagnose } from "./diagnose.js";
+import type { ConfigDifference } from "./diff.js";
+import type { Extraction } from "./extract.js";
+import type { Observation } from "./schemas.js";
 
 export interface ServerOptions {
   dataRoot?: string;
@@ -220,11 +223,13 @@ export function createApp(opts: ServerOptions = {}): Server {
       }
       const record = JSON.parse(raw) as {
         ticket: { ticketText: string };
-        diffs: Array<{ field: string }>;
+        diffs: ConfigDifference[];
         evidence: Array<{ evidenceId: string; kind: string; content: string }>;
-        extraction: { disposition: string; evidenceRequest: string[]; conflicts: string[] };
+        extraction: Extraction;
+        observations?: Observation[];
         facts: Record<string, string | null>;
       };
+      const observations = record.observations ?? [];
       const byKind = (kind: string) =>
         record.evidence.filter((e) => e.kind === kind).map((e) => `${e.evidenceId}: ${e.content.slice(0, 200)}`);
       const caseData = {
@@ -233,15 +238,25 @@ export function createApp(opts: ServerOptions = {}): Server {
         environment: "published",
         evidenceRefs: record.evidence.map((e) => e.evidenceId),
       };
-      const diagnosis: DiagnoseOutput = {
-        hypotheses: [],
-        abstention: `Extraction disposition: ${record.extraction.disposition}.`,
-        conflicts: record.extraction.conflicts,
-        unknowns: record.extraction.evidenceRequest,
-        injectionFlagged: false,
-        definitive: false,
-        evidenceBar: { passed: false, reason: "server review path does not re-diagnose" },
-      };
+      // The real diagnosis over the stored observations. Approvals are filed
+      // from this, so it must not be a placeholder.
+      const diagnosis = diagnose({
+        caseId,
+        ticketText: record.ticket.ticketText,
+        diffs: record.diffs,
+        observations,
+        extraction: record.extraction,
+        evidenceIds: record.evidence.map((e) => e.evidenceId),
+        logs: record.evidence
+          .filter((e) => e.kind === "supplied-evidence" && e.evidenceId.endsWith("-log-1"))
+          .map((e) => ({ evidenceId: e.evidenceId, deployment: "current", content: e.content })),
+      });
+      const inferred = [
+        ...diagnosis.hypotheses.map(
+          (h) => `${h.category} (rank ${h.rank}, ${h.evidenceIds.length} citation(s)): ${h.uncertainty}`,
+        ),
+        ...(diagnosis.abstention ? [diagnosis.abstention] : []),
+      ];
 
       if (req.method === "GET" && (suffix === "" || suffix === "/")) {
         const packet = buildPacket({ caseData, diagnosis });
@@ -254,7 +269,7 @@ export function createApp(opts: ServerOptions = {}): Server {
               reported: byKind("customer-reported"),
               supplied: byKind("supplied-evidence"),
               observed: byKind("directly-observed"),
-              inferred: [`disposition: ${record.extraction.disposition}`, ...record.extraction.conflicts],
+              inferred,
               reply: packet.reply,
               key: randomUUID(),
             }),

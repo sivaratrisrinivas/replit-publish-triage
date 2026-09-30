@@ -25,7 +25,7 @@ flowchart LR
 
 | Suite | Passed | Total | Note |
 |---|---|---|---|
-| Unit + integration tests | 82 | 82 | 18 files, includes release gates |
+| Unit + integration tests | 92 | 92 | 18 files, includes release gates |
 | Eval cases (synthetic) | 24 | 24 | safety 8/8, held-out 12/12, lower bound 0.757 |
 | Baseline top-category (diff-only) | 8 | 10 | pipeline wins on redirect + intermittent |
 | Community traces (public reports) | 8 | 8 | 6 correct categories, 2 clean abstentions |
@@ -41,11 +41,11 @@ Support engineers spend most of their time turning a vague customer report into 
 
 You need Node 24 and npm.
 
-1. Install and verify. Run `npm install`, then `npm test`. Expect 84 passed across 18 files. Run `npm run typecheck`. Expect no output after the banner, which means clean.
+1. Install and verify. Run `npm install`, then `npm test`. Expect 92 passed across 18 files. Run `npm run typecheck`. Expect no output after the banner, which means clean.
 
 2. Start the review UI. Run `npm run serve` and open http://localhost:3000. A demo case is seeded automatically.
 
-3. Open the seeded case. The queue shows one row with status, category, confidence, last action, and a labeled time estimate. Click it. The detail page separates what the customer said, what was supplied, what was directly observed, and what was inferred, each with citations.
+3. Open the seeded case. The queue shows one row with status, category, confidence, last action, and a labeled time estimate. Click it. The detail page separates what the customer said, what was supplied, what was directly observed, and what was inferred, each with citations. "Directly observed" is populated by the check runner, not a placeholder.
 
 4. Run the pipeline by hand on a fixture. Run `npm run case:run -- fixtures/missing-prod-config.json demo-1`. Expect a diff on `envVarNames` and `secretsPresentNames` plus a missing-evidence list. Run `npm run check:run -- fixtures/bad-start-port.json` to see the startup audit fail without touching the network.
 

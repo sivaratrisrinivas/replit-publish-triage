@@ -52,6 +52,29 @@ describe("review server", () => {
     expect(html).toContain("web1-ticket");
   });
 
+  it("detail shows real observed evidence, not an empty placeholder", async () => {
+    const html = await (await fetch(`${baseUrl}/case/web1`)).text();
+    expect(html).toContain("web1-obs-config-start-port-audit");
+    expect(html).toMatch(/(pass|fail|incomplete): /);
+    expect(html).not.toContain("nothing here yet");
+  });
+
+  it("detail never claims a conflict that was not detected", async () => {
+    const html = await (await fetch(`${baseUrl}/case/web1`)).text();
+    expect(html).not.toMatch(/Unresolved: conflicting evidence/);
+  });
+
+  it("approving files an action that carries the real diagnosis", async () => {
+    const key = "123e4567-e89b-12d3-a456-426614174005";
+    const form = new URLSearchParams({ decision: "approve", editedReply: "r", target: "mock-zendesk", reviewer: "sam", idempotencyKey: key });
+    const res = await fetch(`${baseUrl}/case/web1/review`, { method: "POST", body: form, redirect: "manual" });
+    expect(res.status).toBe(303);
+    const raw = await readFile(join(ROOT, "actions", `${key}.json`), "utf8");
+    const payload = JSON.parse(raw).payload;
+    expect(payload.evidenceRefs).toContain("web1-ticket");
+    expect(payload.evidenceRefs.some((r: string) => r.includes("config-start-port-audit"))).toBe(true);
+  });
+
   it("approve creates exactly one action; repeat approval replays without duplicate", async () => {
     const key = "123e4567-e89b-12d3-a456-426614174002";
     const form = new URLSearchParams({ decision: "approve", editedReply: "Looks good", target: "mock-zendesk", reviewer: "sam", idempotencyKey: key });
