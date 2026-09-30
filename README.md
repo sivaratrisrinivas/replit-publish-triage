@@ -21,17 +21,17 @@ flowchart LR
     rank --> abstain["or abstain with evidence request"]
 ```
 
-## Results (synthetic)
+## Results
 
-| Suite | Passed | Total |
-|---|---|---|
-| Unit + integration tests | 75 | 75 |
-| Eval cases | 24 | 24 |
-| Safety cases | 8 | 8 |
-| Non-safety held-out | 12 | 12 |
-| Baseline top-category (diff-only) | 8 | 10 |
+| Suite | Passed | Total | Note |
+|---|---|---|---|
+| Unit + integration tests | 82 | 82 | 18 files, includes release gates |
+| Eval cases (synthetic) | 24 | 24 | safety 8/8, held-out 12/12, lower bound 0.757 |
+| Baseline top-category (diff-only) | 8 | 10 | pipeline wins on redirect + intermittent |
+| Community traces (public reports) | 8 | 8 | 6 correct categories, 2 clean abstentions |
+| Live LLM extractions (Gemini, free tier) | 3 | 3 | vaguest tickets improved over deterministic |
 
-The full pipeline beats the diff-only baseline on redirect and intermittent cases, where observed evidence matters and config comparison alone guesses.
+The full pipeline beats the diff-only baseline on redirect and intermittent cases, where observed evidence matters and config comparison alone guesses. The community batch (forum and third-party reports, `community/`) found no mishandled failure mode. Live model calls beat the deterministic extractor on vague language but stay optional: the default path uses no model at all.
 
 ## Why it exists
 
@@ -41,7 +41,7 @@ Support engineers spend most of their time turning a vague customer report into 
 
 You need Node 24 and npm.
 
-1. Install and verify. Run `npm install`, then `npm test`. Expect 75 passed across 16 files. Run `npm run typecheck`. Expect no output after the banner, which means clean.
+1. Install and verify. Run `npm install`, then `npm test`. Expect 82 passed across 18 files. Run `npm run typecheck`. Expect no output after the banner, which means clean.
 
 2. Start the review UI. Run `npm run serve` and open http://localhost:3000. A demo case is seeded automatically.
 
